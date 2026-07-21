@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Checklist PM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-brand">
+        <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
+        <div>
+          <p class="sidebar-brand-name">Savoria</p>
+          <p class="sidebar-brand-sub">Maintenance app</p>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" class="sidebar-link">Dashboard</a>
+      <a href="laporan.html" class="sidebar-link">Input laporan</a>
+      <a href="rekap.html" class="sidebar-link">Rekap laporan</a>
+      <a href="pm.html" class="sidebar-link active">Checklist PM</a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-logo">
+          <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
+        </div>
+        <div class="topbar-text">
+          <span class="topbar-title">Checklist PM</span>
+          <span class="topbar-sub">Pilih equipment & periode checklist</span>
+        </div>
+        <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <main class="wrap wrap-wide">
+      <div id="pm-categories"></div>
+    </main>
+
+  </div>
+
+</div>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<script src="js/sidebar.js"></script>
+<script type="module" src="js/pm.js"></script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Checklist PM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-brand">
+        <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
+        <div>
+          <p class="sidebar-brand-name">Savoria</p>
+          <p class="sidebar-brand-sub">Maintenance app</p>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" class="sidebar-link">Dashboard</a>
+      <a href="laporan.html" class="sidebar-link">Input laporan</a>
+      <a href="rekap.html" class="sidebar-link">Rekap laporan</a>
+      <a href="pm.html" class="sidebar-link active">Checklist PM</a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-logo">
+          <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
+        </div>
+        <div class="topbar-text">
+          <span class="topbar-title" id="checklist-topbar-title">Checklist PM</span>
+          <span class="topbar-sub" id="checklist-topbar-sub">&nbsp;</span>
+        </div>
+        <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <main class="wrap wrap-form">
+
+      <a href="pm.html" class="pm-back-btn">
+        <span class="pm-back-btn-icon">&larr;</span>
+        Kembali ke daftar checklist
+      </a>
+
+      <p class="form-error" id="checklist-not-found" hidden>
+        Checklist tidak ditemukan. Kembali ke daftar checklist dan pilih lagi.
+      </p>
+
+      <div class="form-card" id="checklist-card" hidden>
+        <form id="form-checklist" novalidate>
+
+          <section class="field">
+            <label class="field-label" for="input-equipment">Equipment</label>
+            <input type="text" id="input-equipment" placeholder="Nama / tipe equipment" required />
+          </section>
+
+          <div class="field-row">
+            <section class="field">
+              <label class="field-label" for="input-area">Area</label>
+              <input type="text" id="input-area" placeholder="Lokasi / area" />
+            </section>
+            <section class="field">
+              <label class="field-label">Periode</label>
+              <input type="text" id="input-periode" disabled />
+            </section>
+          </div>
+
+          <div class="field-row">
+            <section class="field">
+              <label class="field-label" for="input-bulan-tahun" id="label-bulan-tahun">Bulan / Tahun</label>
+              <input type="text" id="input-bulan-tahun" placeholder="cth. Juli 2026" />
+            </section>
+            <section class="field">
+              <label class="field-label" for="input-tanggal" id="label-tanggal">Tanggal Inspeksi</label>
+              <input type="date" id="input-tanggal" required />
+            </section>
+          </div>
+
+          <section class="field">
+            <label class="field-label" id="label-uraian">Uraian pekerjaan</label>
+            <p class="checklist-grid-hint" id="checklist-grid-hint" hidden>Geser ke kanan untuk isi semua kolom &rarr;</p>
+            <div class="checklist-table" id="checklist-items"></div>
+          </section>
+
+          <div class="field-row">
+            <section class="field">
+              <label class="field-label" for="input-opr">Checked By (Operator)</label>
+              <input type="text" id="input-opr" placeholder="Nama operator" />
+            </section>
+            <section class="field">
+              <label class="field-label" for="input-spv">Checked By (SPV)</label>
+              <input type="text" id="input-spv" placeholder="Nama supervisor" />
+            </section>
+          </div>
+
+          <section class="field">
+            <label class="field-label" for="input-catatan">Catatan</label>
+            <textarea id="input-catatan" placeholder="Catatan tambahan (opsional)"></textarea>
+          </section>
+
+          <p class="form-error" id="form-error" hidden></p>
+
+          <button type="submit" class="btn-submit" id="btn-submit">
+            <span class="btn-submit-label">Simpan checklist</span>
+          </button>
+        </form>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="success-overlay" id="success-overlay" hidden>
+  <div class="success-card">
+    <div class="success-check">&check;</div>
+    <p><strong>Checklist tersimpan</strong></p>
+    <p>Isian checklist PM berhasil dikirim.</p>
+    <button type="button" class="btn-submit" id="btn-new-checklist">Isi checklist baru</button>
+  </div>
+</div>
+
+<script src="js/sidebar.js"></script>
+<script type="module" src="js/checklist.js"></script>
+</body>
+</html>

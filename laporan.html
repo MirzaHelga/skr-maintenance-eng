@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Laporan Mesin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-brand">
+        <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
+        <div>
+          <p class="sidebar-brand-name">Savoria</p>
+          <p class="sidebar-brand-sub">Maintenance app</p>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <a href="index.html" class="sidebar-link">Dashboard</a>
+      <a href="laporan.html" class="sidebar-link active">Input laporan</a>
+      <a href="rekap.html" class="sidebar-link">Rekap laporan</a>
+      <a href="pm.html" class="sidebar-link">Checklist PM</a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-logo">
+          <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
+        </div>
+        <div class="topbar-text">
+          <span class="topbar-title">Laporan Mesin</span>
+          <span class="topbar-sub">Form kondisi &amp; kejadian mesin harian</span>
+        </div>
+        <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <main class="wrap wrap-form">
+
+      <div class="form-card">
+        <form id="form-laporan" novalidate>
+
+          <!-- STATUS -->
+          <section class="field">
+            <label class="field-label">Status mesin</label>
+            <div class="status-grid" id="status-grid">
+              <button type="button" class="status-chip" data-value="Running">
+                <span class="chip-dot"></span>Running
+              </button>
+              <button type="button" class="status-chip" data-value="Standby">
+                <span class="chip-dot"></span>Standby
+              </button>
+              <button type="button" class="status-chip" data-value="Maintenance">
+                <span class="chip-dot"></span>Maintenance
+              </button>
+              <button type="button" class="status-chip" data-value="Breakdown">
+                <span class="chip-dot"></span>Breakdown
+              </button>
+            </div>
+            <p class="field-error" id="err-status" hidden>Pilih salah satu status.</p>
+          </section>
+
+          <!-- AREA / MESIN / EQUIPMENT -->
+          <div class="field-row-3 field-row-stack">
+            <section class="field">
+              <label class="field-label" for="select-area">Area</label>
+              <select id="select-area" required>
+                <option value="" disabled selected>Memuat data area…</option>
+              </select>
+            </section>
+
+            <section class="field">
+              <label class="field-label" for="select-mesin">Mesin</label>
+              <select id="select-mesin" required disabled>
+                <option value="" disabled selected>Pilih area dulu</option>
+              </select>
+            </section>
+
+            <section class="field">
+              <label class="field-label" for="select-equipment">Equipment</label>
+              <select id="select-equipment" required disabled>
+                <option value="" disabled selected>Pilih mesin dulu</option>
+              </select>
+            </section>
+          </div>
+
+          <!-- TANGGAL / JAM / SHIFT -->
+          <div class="field-row-3">
+            <section class="field">
+              <label class="field-label" for="input-tanggal">Tanggal</label>
+              <input type="date" id="input-tanggal" required />
+            </section>
+            <section class="field">
+              <label class="field-label" for="input-jam">Jam</label>
+              <input type="time" id="input-jam" required />
+            </section>
+            <section class="field">
+              <label class="field-label" for="select-shift">Shift</label>
+              <select id="select-shift" required>
+                <option value="" disabled selected>Pilih shift</option>
+                <option value="Shift 1">Shift 1</option>
+                <option value="Shift 2">Shift 2</option>
+                <option value="Shift 3">Shift 3</option>
+              </select>
+            </section>
+          </div>
+
+          <!-- DESKRIPSI -->
+          <section class="field">
+            <label class="field-label" for="input-deskripsi">Deskripsi kejadian</label>
+            <textarea id="input-deskripsi" rows="4" placeholder="Jelaskan kondisi atau kejadian pada mesin…" required></textarea>
+          </section>
+
+          <!-- PIC -->
+          <section class="field">
+            <label class="field-label" for="select-pic">PIC</label>
+            <select id="select-pic" required>
+              <option value="" disabled selected>Memuat data karyawan…</option>
+            </select>
+          </section>
+
+          <!-- FOTO -->
+          <section class="field">
+            <label class="field-label">Foto</label>
+            <div class="photo-input">
+              <input type="file" id="input-foto-camera" accept="image/*" capture="environment" hidden />
+              <input type="file" id="input-foto-gallery" accept="image/*" multiple hidden />
+              <div class="photo-buttons">
+                <button type="button" id="btn-foto-camera" class="photo-btn" hidden>Ambil foto</button>
+                <button type="button" id="btn-foto-gallery" class="photo-btn">Upload foto</button>
+              </div>
+              <div class="photo-preview-grid" id="photo-preview-grid"></div>
+            </div>
+          </section>
+
+          <p class="form-error" id="form-error" hidden></p>
+
+          <button type="submit" id="btn-submit" class="btn-submit">
+            <span class="btn-submit-label">Kirim laporan</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="success-overlay" id="success-overlay" hidden>
+        <div class="success-card">
+          <div class="success-check">✓</div>
+          <p class="success-title">Laporan terkirim</p>
+          <p class="success-sub">Laporan mesin sudah tersimpan.</p>
+          <button type="button" id="btn-new-report" class="btn-secondary">Buat laporan baru</button>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+</div>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<script src="js/sidebar.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
