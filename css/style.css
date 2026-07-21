@@ -76,6 +76,10 @@ html, body {
   gap: 14px;
 }
 
+@media (max-width: 639px) {
+  .topbar-inner { padding-right: 54px; }
+}
+
 /* ---------- HAMBURGER + SIDEBAR ---------- */
 
 .menu-btn {
