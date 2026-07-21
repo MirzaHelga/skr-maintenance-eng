@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Rekap Laporan Mesin</title>
+<title>Rekap Checklist PM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,9 +26,9 @@
     <div class="sidebar-nav">
       <a href="index.html" class="sidebar-link">Dashboard</a>
       <a href="laporan.html" class="sidebar-link">Input laporan</a>
-      <a href="rekap.html" class="sidebar-link active">Rekap laporan</a>
+      <a href="rekap.html" class="sidebar-link">Rekap laporan</a>
       <a href="pm.html" class="sidebar-link">Checklist PM</a>
-      <a href="rekap-pm.html" class="sidebar-link">Rekap Checklist PM</a>
+      <a href="rekap-pm.html" class="sidebar-link active">Rekap Checklist PM</a>
     </div>
   </aside>
 
@@ -40,8 +40,8 @@
           <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
         </div>
         <div class="topbar-text">
-          <span class="topbar-title">Rekap Laporan</span>
-          <span class="topbar-sub">Riwayat laporan mesin &amp; export Excel</span>
+          <span class="topbar-title">Rekap Checklist PM</span>
+          <span class="topbar-sub">Riwayat checklist preventive maintenance</span>
         </div>
         <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
           <span></span><span></span><span></span>
@@ -53,7 +53,7 @@
     <main class="wrap gate-wrap" id="gate-wrap">
       <div class="gate-card">
         <p class="gate-title">Halaman terkunci</p>
-        <p class="gate-sub">Masukkan password untuk melihat rekap laporan.</p>
+        <p class="gate-sub">Masukkan password untuk melihat rekap checklist PM.</p>
         <form id="gate-form">
           <input type="password" id="gate-input" class="gate-input" placeholder="Password" autocomplete="off" required />
           <p class="gate-error" id="gate-error" hidden></p>
@@ -76,19 +76,15 @@
             <input type="date" id="f-tanggal-sampai" />
           </div>
           <div class="filter-field">
-            <label class="field-label" for="f-area">Area</label>
-            <select id="f-area">
-              <option value="">Semua area</option>
+            <label class="field-label" for="f-checklist">Checklist</label>
+            <select id="f-checklist">
+              <option value="">Semua checklist</option>
             </select>
           </div>
           <div class="filter-field">
-            <label class="field-label" for="f-status">Status</label>
-            <select id="f-status">
-              <option value="">Semua status</option>
-              <option value="Running">Running</option>
-              <option value="Standby">Standby</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Breakdown">Breakdown</option>
+            <label class="field-label" for="f-periode">Periode</label>
+            <select id="f-periode">
+              <option value="">Semua periode</option>
             </select>
           </div>
         </div>
@@ -110,19 +106,18 @@
           <thead>
             <tr>
               <th>Tanggal</th>
-              <th>Jam</th>
-              <th>Shift</th>
-              <th>Area</th>
-              <th>Mesin</th>
+              <th>Checklist</th>
+              <th>Periode</th>
               <th>Equipment</th>
-              <th>Status</th>
-              <th>Deskripsi</th>
-              <th>PIC</th>
-              <th>Foto</th>
+              <th>Area</th>
+              <th>Bulan/Tahun</th>
+              <th>Diperiksa (OPR)</th>
+              <th>Diperiksa (SPV)</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="rekap-tbody">
-            <tr><td colspan="10" class="table-empty">Memuat data…</td></tr>
+            <tr><td colspan="9" class="table-empty">Memuat data…</td></tr>
           </tbody>
         </table>
       </div>
@@ -135,7 +130,19 @@
 
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
+<!-- DETAIL CHECKLIST -->
+<div class="pm-detail-overlay" id="pm-detail-overlay" hidden>
+  <div class="pm-detail-card">
+    <button type="button" class="pm-detail-close" id="pm-detail-close" aria-label="Tutup">&times;</button>
+    <p class="pm-detail-title" id="pm-detail-title"></p>
+    <p class="pm-detail-sub" id="pm-detail-sub"></p>
+    <div class="pm-detail-meta" id="pm-detail-meta"></div>
+    <div class="pm-detail-body" id="pm-detail-body"></div>
+    <div class="pm-detail-catatan" id="pm-detail-catatan"></div>
+  </div>
+</div>
+
 <script src="js/sidebar.js"></script>
-<script type="module" src="js/rekap.js"></script>
+<script type="module" src="js/rekap-pm.js"></script>
 </body>
 </html>
