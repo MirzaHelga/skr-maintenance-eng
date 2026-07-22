@@ -1,17 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, REKAP_PASSWORD } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ---------- ELEMENTS ----------
-const gateWrap = document.getElementById("gate-wrap");
-const gateForm = document.getElementById("gate-form");
-const gateInput = document.getElementById("gate-input");
-const gateError = document.getElementById("gate-error");
-const gateSubmitBtn = gateForm.querySelector('button[type="submit"]');
-const rekapWrap = document.getElementById("rekap-wrap");
-
 const fTanggalDari = document.getElementById("f-tanggal-dari");
 const fTanggalSampai = document.getElementById("f-tanggal-sampai");
 const fArea = document.getElementById("f-area");
@@ -24,73 +17,16 @@ const rekapError = document.getElementById("rekap-error");
 const rekapTbody = document.getElementById("rekap-tbody");
 const btnExport = document.getElementById("btn-export");
 
-const ATTEMPTS_KEY = "rekap-attempts";
-const MAX_ATTEMPTS = 5;
-
 // baris yang sedang tampil (hasil filter terakhir) — ini yang dipakai export
 let currentRows = [];
 
-// dipakai supaya loadAreaFilter()+loadLaporan() cuma jalan sekali
-let initialized = false;
-
-// ---------- GERBANG PASSWORD ----------
-function unlock() {
-  gateWrap.hidden = true;
-  gateWrap.style.display = "none";
-  rekapWrap.hidden = false;
-  init();
-}
-
-function getAttempts() {
-  return parseInt(sessionStorage.getItem(ATTEMPTS_KEY) || "0", 10);
-}
-
-function lockGate() {
-  gateInput.disabled = true;
-  gateSubmitBtn.disabled = true;
-  gateError.hidden = false;
-  gateError.textContent = `Sudah ${MAX_ATTEMPTS}x salah. Tutup dan buka lagi halaman ini (atau muat ulang) untuk coba lagi.`;
-}
-
-// Setiap buka/refresh halaman ini, gerbang password selalu tampil lagi —
-// tidak diingat lintas kunjungan. Cuma limit percobaan yang tetap dicek.
-if (getAttempts() >= MAX_ATTEMPTS) {
-  lockGate();
-}
-
-gateForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const typed = gateInput.value.trim();
-
-  if (typed === REKAP_PASSWORD.trim()) {
-    sessionStorage.removeItem(ATTEMPTS_KEY);
-    gateError.hidden = true;
-    unlock();
-    return;
-  }
-
-  const attempts = getAttempts() + 1;
-  sessionStorage.setItem(ATTEMPTS_KEY, String(attempts));
-
-  if (attempts >= MAX_ATTEMPTS) {
-    lockGate();
-    return;
-  }
-
-  const sisaPercobaan = MAX_ATTEMPTS - attempts;
-  gateError.hidden = false;
-  gateError.textContent = `Password salah (kamu mengetik ${typed.length} karakter). Sisa percobaan: ${sisaPercobaan}x.`;
-  gateInput.value = "";
-  gateInput.focus();
-});
-
-// ---------- INIT (dipanggil sekali setelah unlock) ----------
+// ---------- INIT (halaman ini sudah dijaga role SPV lewat auth.js) ----------
 async function init() {
-  if (initialized) return;
-  initialized = true;
   await loadAreaFilter();
   await loadLaporan();
 }
+
+init();
 
 async function loadAreaFilter() {
   const { data, error } = await supabase.from("area").select("id, nama").order("nama");
@@ -124,15 +60,21 @@ const STATUS_CLASS = {
   Breakdown: "breakdown",
 };
 
+const REVIEW_LABEL = {
+  draft: "Menunggu review",
+  approved: "Disetujui",
+  rejected: "Ditolak",
+};
+
 async function loadLaporan() {
   clearError();
   btnExport.disabled = true;
   rekapCount.textContent = "Memuat data…";
-  rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Memuat data…</td></tr>`;
+  rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Memuat data…</td></tr>`;
 
   let query = supabase
     .from("laporan")
-    .select("tanggal, jam, shift, status, deskripsi, pic, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)")
+    .select("tanggal, jam, shift, status, deskripsi, pic, review_status, reviewed_by, reject_reason, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)")
     .order("tanggal", { ascending: false })
     .order("jam", { ascending: false });
 
@@ -151,7 +93,7 @@ async function loadLaporan() {
         ")"
     );
     rekapCount.textContent = "";
-    rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Gagal memuat data.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Gagal memuat data.</td></tr>`;
     return;
   }
 
@@ -163,7 +105,7 @@ async function loadLaporan() {
 
 function renderTable(rows) {
   if (rows.length === 0) {
-    rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Tidak ada laporan untuk filter ini.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Tidak ada laporan untuk filter ini.</td></tr>`;
     return;
   }
 
@@ -182,9 +124,19 @@ function renderTable(rows) {
       <td class="col-deskripsi">${escapeHtml(row.deskripsi ?? "")}</td>
       <td>${row.pic ?? ""}</td>
       <td>${renderFotoLinks(row.laporan_foto)}</td>
+      <td>${renderReviewBadge(row)}</td>
     `;
     rekapTbody.appendChild(tr);
   }
+}
+
+function renderReviewBadge(row) {
+  const label = REVIEW_LABEL[row.review_status] || row.review_status || "";
+  let html = `<span class="review-badge review-badge--${row.review_status}">${label}</span>`;
+  if (row.review_status === "rejected" && row.reject_reason) {
+    html += `<p class="rekap-reject-reason">${escapeHtml(row.reject_reason)}</p>`;
+  }
+  return html;
 }
 
 function renderFotoLinks(fotos) {
@@ -232,6 +184,8 @@ btnExport.addEventListener("click", () => {
     Deskripsi: row.deskripsi ?? "",
     PIC: row.pic ?? "",
     "Link Foto": (row.laporan_foto || []).map((f) => f.foto_url).join("; "),
+    Review: REVIEW_LABEL[row.review_status] || row.review_status || "",
+    "Alasan Ditolak": row.reject_reason ?? "",
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -246,6 +200,8 @@ btnExport.addEventListener("click", () => {
     { wch: 45 }, // Deskripsi
     { wch: 16 }, // PIC
     { wch: 30 }, // Link Foto
+    { wch: 16 }, // Review
+    { wch: 30 }, // Alasan Ditolak
   ];
 
   const workbook = XLSX.utils.book_new();

@@ -8,6 +8,7 @@ const statTotal = document.getElementById("stat-total");
 const statBreakdown = document.getElementById("stat-breakdown");
 const statMaintenance = document.getElementById("stat-maintenance");
 const statRunning = document.getElementById("stat-running");
+const statDraft = document.getElementById("stat-draft");
 const dashError = document.getElementById("dash-error");
 const recentList = document.getElementById("dash-recent-list");
 const dashDate = document.getElementById("dash-date");
@@ -88,6 +89,25 @@ async function loadStats() {
   distBreakdown.textContent = String(countByStatus.Breakdown);
 }
 
+// ---------- DRAFT MENUNGGU REVIEW ----------
+async function loadDraftCount() {
+  const [laporanRes, checklistRes] = await Promise.all([
+    supabase.from("laporan").select("id", { count: "exact", head: true }).eq("review_status", "draft"),
+    supabase
+      .from("pm_checklist_submission")
+      .select("id", { count: "exact", head: true })
+      .eq("review_status", "draft"),
+  ]);
+
+  if (laporanRes.error || checklistRes.error) {
+    console.error(laporanRes.error || checklistRes.error);
+    statDraft.textContent = "–";
+    return;
+  }
+
+  statDraft.textContent = String((laporanRes.count || 0) + (checklistRes.count || 0));
+}
+
 function renderDashDate() {
   const now = new Date();
   dashDate.textContent = now.toLocaleDateString("id-ID", {
@@ -146,3 +166,4 @@ function escapeHtml(str) {
 renderDashDate();
 loadStats();
 loadRecent();
+loadDraftCount();

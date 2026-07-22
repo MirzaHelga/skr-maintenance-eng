@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-page="rekap-pm" data-allow="spv,superadmin">
 
 <div class="app-shell">
 
@@ -24,11 +24,13 @@
       </div>
     </div>
     <div class="sidebar-nav">
-      <a href="index.html" class="sidebar-link">Dashboard</a>
-      <a href="laporan.html" class="sidebar-link">Input laporan</a>
-      <a href="rekap.html" class="sidebar-link">Rekap laporan</a>
-      <a href="pm.html" class="sidebar-link">Checklist PM</a>
-      <a href="rekap-pm.html" class="sidebar-link active">Rekap Checklist PM</a>
+      <a href="index.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
+      <a href="laporan.html" class="sidebar-link" data-role="all">Input laporan</a>
+      <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
+      <a href="pm.html" class="sidebar-link" data-role="all">Checklist PM</a>
+      <a href="rekap-pm.html" class="sidebar-link active" data-role="spv,superadmin">Rekap Checklist PM</a>
+      <a href="draft.html" class="sidebar-link" data-role="spv,superadmin">Draft</a>
+      <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
     </div>
   </aside>
 
@@ -49,21 +51,8 @@
       </div>
     </div>
 
-    <!-- GERBANG PASSWORD -->
-    <main class="wrap gate-wrap" id="gate-wrap">
-      <div class="gate-card">
-        <p class="gate-title">Halaman terkunci</p>
-        <p class="gate-sub">Masukkan password untuk melihat rekap checklist PM.</p>
-        <form id="gate-form">
-          <input type="password" id="gate-input" class="gate-input" placeholder="Password" autocomplete="off" required />
-          <p class="gate-error" id="gate-error" hidden></p>
-          <button type="submit" class="btn-submit">Buka</button>
-        </form>
-      </div>
-    </main>
-
-    <!-- ISI REKAP -->
-    <main class="wrap wrap-wide" id="rekap-wrap" hidden>
+    <!-- ISI REKAP (halaman ini sudah dijaga role SPV lewat auth.js) -->
+    <main class="wrap wrap-wide" id="rekap-wrap">
 
       <section class="filter-card">
         <div class="filter-row">
@@ -113,11 +102,12 @@
               <th>Bulan/Tahun</th>
               <th>Diperiksa (OPR)</th>
               <th>Diperiksa (SPV)</th>
+              <th>Review</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="rekap-tbody">
-            <tr><td colspan="9" class="table-empty">Memuat data…</td></tr>
+            <tr><td colspan="10" class="table-empty">Memuat data…</td></tr>
           </tbody>
         </table>
       </div>
@@ -143,6 +133,7 @@
 </div>
 
 <script src="js/sidebar.js"></script>
+<script type="module" src="js/auth.js"></script>
 <script type="module" src="js/rekap-pm.js"></script>
 </body>
 </html>

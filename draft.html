@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Checklist PM</title>
+<title>Draft — Maintenance App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body data-page="pm" data-allow="operator,spv,superadmin">
+<body data-page="draft" data-allow="spv,superadmin">
 
 <div class="app-shell">
 
@@ -27,9 +27,9 @@
       <a href="index.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
       <a href="laporan.html" class="sidebar-link" data-role="all">Input laporan</a>
       <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
-      <a href="pm.html" class="sidebar-link active" data-role="all">Checklist PM</a>
+      <a href="pm.html" class="sidebar-link" data-role="all">Checklist PM</a>
       <a href="rekap-pm.html" class="sidebar-link" data-role="spv,superadmin">Rekap Checklist PM</a>
-      <a href="draft.html" class="sidebar-link" data-role="spv,superadmin">Draft</a>
+      <a href="draft.html" class="sidebar-link active" data-role="spv,superadmin">Draft</a>
       <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
     </div>
   </aside>
@@ -42,8 +42,8 @@
           <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
         </div>
         <div class="topbar-text">
-          <span class="topbar-title">Checklist PM</span>
-          <span class="topbar-sub">Pilih equipment & periode checklist</span>
+          <span class="topbar-title">Draft</span>
+          <span class="topbar-sub">Tinjau laporan &amp; checklist PM dari operator</span>
         </div>
         <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
           <span></span><span></span><span></span>
@@ -52,8 +52,19 @@
     </div>
 
     <main class="wrap wrap-wide">
-      <a href="rekap-pm.html" class="pm-rekap-link">Lihat rekap checklist PM &rarr;</a>
-      <div id="pm-categories"></div>
+
+      <div class="draft-tabs" id="draft-tabs">
+        <button type="button" class="draft-tab active" data-status="draft">Menunggu review</button>
+        <button type="button" class="draft-tab" data-status="approved">Disetujui</button>
+        <button type="button" class="draft-tab" data-status="rejected">Ditolak</button>
+        <button type="button" class="draft-tab" data-status="">Semua</button>
+      </div>
+
+      <p class="form-error" id="draft-error" hidden></p>
+      <p class="rekap-count" id="draft-count">Memuat data…</p>
+
+      <div class="draft-list" id="draft-list"></div>
+
     </main>
 
   </div>
@@ -62,8 +73,21 @@
 
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
+<!-- MODAL ALASAN TOLAK -->
+<div class="pm-detail-overlay" id="reject-overlay" hidden>
+  <div class="pm-detail-card reject-modal-card">
+    <button type="button" class="pm-detail-close" id="reject-close" aria-label="Tutup">&times;</button>
+    <p class="pm-detail-title">Tolak draft</p>
+    <p class="pm-detail-sub" id="reject-target-label"></p>
+    <label class="field-label" for="reject-reason">Alasan penolakan</label>
+    <textarea id="reject-reason" rows="4" placeholder="Jelaskan alasan penolakan…"></textarea>
+    <p class="field-error" id="reject-error" hidden>Isi dulu alasan penolakannya.</p>
+    <button type="button" id="reject-confirm" class="btn-submit reject-confirm-btn">Kirim penolakan</button>
+  </div>
+</div>
+
 <script src="js/sidebar.js"></script>
 <script type="module" src="js/auth.js"></script>
-<script type="module" src="js/pm.js"></script>
+<script type="module" src="js/draft.js"></script>
 </body>
 </html>

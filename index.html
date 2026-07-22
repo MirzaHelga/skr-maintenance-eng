@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-page="dashboard" data-allow="spv,superadmin">
 
 <div class="app-shell">
 
@@ -24,11 +24,13 @@
       </div>
     </div>
     <div class="sidebar-nav">
-      <a href="index.html" class="sidebar-link active">Dashboard</a>
-      <a href="laporan.html" class="sidebar-link">Input laporan</a>
-      <a href="rekap.html" class="sidebar-link">Rekap laporan</a>
-      <a href="pm.html" class="sidebar-link">Checklist PM</a>
-      <a href="rekap-pm.html" class="sidebar-link">Rekap Checklist PM</a>
+      <a href="index.html" class="sidebar-link active" data-role="spv,superadmin">Dashboard</a>
+      <a href="laporan.html" class="sidebar-link" data-role="all">Input laporan</a>
+      <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
+      <a href="pm.html" class="sidebar-link" data-role="all">Checklist PM</a>
+      <a href="rekap-pm.html" class="sidebar-link" data-role="spv,superadmin">Rekap Checklist PM</a>
+      <a href="draft.html" class="sidebar-link" data-role="spv,superadmin">Draft</a>
+      <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
     </div>
   </aside>
 
@@ -88,6 +90,10 @@
           <span class="dash-stat-label">Running</span>
           <span class="dash-stat-value" id="stat-running">–</span>
         </div>
+        <a href="draft.html" class="dash-stat-card dash-stat-draft">
+          <span class="dash-stat-label">Draft menunggu review</span>
+          <span class="dash-stat-value" id="stat-draft">–</span>
+        </a>
       </section>
 
       <!-- BARIS BAWAH: LAPORAN TERBARU + PANEL SAMPING -->
@@ -143,6 +149,7 @@
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <script src="js/sidebar.js"></script>
+<script type="module" src="js/auth.js"></script>
 <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>

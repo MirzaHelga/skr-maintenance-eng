@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 import { findChecklist } from "./checklist-data.js";
+import { kirimNotifikasiSpv } from "./notify.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -27,8 +28,7 @@ const inputTanggal = document.getElementById("input-tanggal");
 const labelUraian = document.getElementById("label-uraian");
 const gridHint = document.getElementById("checklist-grid-hint");
 const itemsContainer = document.getElementById("checklist-items");
-const inputOpr = document.getElementById("input-opr");
-const inputSpv = document.getElementById("input-spv");
+const selectOpr = document.getElementById("select-opr");
 const inputCatatan = document.getElementById("input-catatan");
 const formError = document.getElementById("form-error");
 const btnSubmit = document.getElementById("btn-submit");
@@ -38,6 +38,48 @@ const btnNewChecklist = document.getElementById("btn-new-checklist");
 window.addEventListener("pageshow", () => {
   successOverlay.hidden = true;
 });
+
+// Departemen yang ditampilkan di dropdown Checked By (Operator) — sama
+// dengan dropdown PIC di form Input Laporan (js/app.js), biar konsisten.
+const OPR_DEPARTEMEN = ["Engineering"];
+let karyawanList = [];
+
+async function loadKaryawan() {
+  const { data, error } = await supabase
+    .from("karyawan")
+    .select("id, nama, departemen")
+    .in("departemen", OPR_DEPARTEMEN)
+    .order("nama");
+
+  if (error) {
+    console.error(error);
+    selectOpr.innerHTML = `<option value="" disabled selected>Gagal memuat data operator</option>`;
+    return;
+  }
+
+  karyawanList = data || [];
+  selectOpr.innerHTML = "";
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "Pilih operator";
+  opt0.disabled = true;
+  opt0.selected = true;
+  selectOpr.appendChild(opt0);
+
+  for (const k of karyawanList) {
+    const opt = document.createElement("option");
+    opt.value = k.id;
+    opt.textContent = k.nama;
+    selectOpr.appendChild(opt);
+  }
+}
+
+function oprKaryawanNama() {
+  const opr = karyawanList.find((k) => k.id === selectOpr.value);
+  return opr ? opr.nama : "";
+}
+
+loadKaryawan();
 
 const params = new URLSearchParams(window.location.search);
 const checklistId = params.get("id");
@@ -150,6 +192,10 @@ function initChecklist(def) {
       showFormError(`Isi dulu ${labelTanggal.textContent}.`);
       return;
     }
+    if (!selectOpr.value) {
+      showFormError("Pilih dulu Checked By (Operator)-nya.");
+      return;
+    }
 
     let items;
     if (isGrid) {
@@ -181,21 +227,31 @@ function initChecklist(def) {
     btnSubmit.querySelector(".btn-submit-label").textContent = "Menyimpan…";
 
     try {
-      const { error } = await supabase.from("pm_checklist_submission").insert({
-        checklist_key: def.id,
-        checklist_title: def.title,
-        periode_label: def.periodeLabel,
-        equipment: inputEquipment.value.trim(),
-        area: inputArea.value.trim(),
-        bulan_tahun: inputBulanTahun.value.trim(),
-        items,
-        tanggal_inspeksi: inputTanggal.value,
-        checked_by_opr: inputOpr.value.trim(),
-        checked_by_spv: inputSpv.value.trim(),
-        catatan: inputCatatan.value.trim(),
-      });
+      const { data: inserted, error } = await supabase
+        .from("pm_checklist_submission")
+        .insert({
+          checklist_key: def.id,
+          checklist_title: def.title,
+          periode_label: def.periodeLabel,
+          equipment: inputEquipment.value.trim(),
+          area: inputArea.value.trim(),
+          bulan_tahun: inputBulanTahun.value.trim(),
+          items,
+          tanggal_inspeksi: inputTanggal.value,
+          checked_by_opr: oprKaryawanNama(),
+          catatan: inputCatatan.value.trim(),
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
+
+      kirimNotifikasiSpv({
+        tipe: "pm_checklist",
+        refId: inserted.id,
+        judul: `Checklist PM baru: ${def.title}`,
+        pesan: `${inputEquipment.value.trim()} · ${def.periodeLabel} · ${inputTanggal.value}`,
+      });
 
       successOverlay.hidden = false;
     } catch (err) {

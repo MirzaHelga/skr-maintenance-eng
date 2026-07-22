@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { kirimNotifikasiSpv } from "./notify.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -271,6 +272,13 @@ form.addEventListener("submit", async (e) => {
       if (fotoError) throw fotoError;
     }
 
+    kirimNotifikasiSpv({
+      tipe: "laporan",
+      refId: inserted.id,
+      judul: `Laporan baru: ${picEquipmentNama()}`,
+      pesan: `${selectedStatus} · ${selectShift.value} · ${inputTanggal.value}`,
+    });
+
     successOverlay.hidden = false;
   } catch (err) {
     console.error(err);
@@ -280,6 +288,10 @@ form.addEventListener("submit", async (e) => {
     btnSubmit.querySelector(".btn-submit-label").textContent = "Kirim laporan";
   }
 });
+
+function picEquipmentNama() {
+  return selectEquipment.selectedOptions[0]?.textContent || "Equipment";
+}
 
 function picKaryawanNama() {
   const picKaryawan = karyawanList.find((k) => k.id === selectPic.value);

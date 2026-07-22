@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body data-page="checklist" data-allow="operator,spv,superadmin">
 
 <div class="app-shell">
 
@@ -24,11 +24,13 @@
       </div>
     </div>
     <div class="sidebar-nav">
-      <a href="index.html" class="sidebar-link">Dashboard</a>
-      <a href="laporan.html" class="sidebar-link">Input laporan</a>
-      <a href="rekap.html" class="sidebar-link">Rekap laporan</a>
-      <a href="pm.html" class="sidebar-link active">Checklist PM</a>
-      <a href="rekap-pm.html" class="sidebar-link">Rekap Checklist PM</a>
+      <a href="index.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
+      <a href="laporan.html" class="sidebar-link" data-role="all">Input laporan</a>
+      <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
+      <a href="pm.html" class="sidebar-link active" data-role="all">Checklist PM</a>
+      <a href="rekap-pm.html" class="sidebar-link" data-role="spv,superadmin">Rekap Checklist PM</a>
+      <a href="draft.html" class="sidebar-link" data-role="spv,superadmin">Draft</a>
+      <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
     </div>
   </aside>
 
@@ -52,7 +54,7 @@
     <main class="wrap wrap-form">
 
       <a href="pm.html" class="pm-back-btn">
-        <class="pm-back-btn-icon"></span>
+        <span class="pm-back-btn-icon">&larr;</span>
         Kembali ke daftar checklist
       </a>
 
@@ -96,16 +98,12 @@
             <div class="checklist-table" id="checklist-items"></div>
           </section>
 
-          <div class="field-row">
-            <section class="field">
-              <label class="field-label" for="input-opr">Checked By (Operator)</label>
-              <input type="text" id="input-opr" placeholder="Nama operator" />
-            </section>
-            <section class="field">
-              <label class="field-label" for="input-spv">Checked By (SPV)</label>
-              <input type="text" id="input-spv" placeholder="Nama supervisor" />
-            </section>
-          </div>
+          <section class="field">
+            <label class="field-label" for="select-opr">Checked By (Operator)</label>
+            <select id="select-opr" required>
+              <option value="" disabled selected>Memuat data operator…</option>
+            </select>
+          </section>
 
           <section class="field">
             <label class="field-label" for="input-catatan">Catatan</label>
@@ -132,12 +130,13 @@
   <div class="success-card">
     <div class="success-check">&check;</div>
     <p><strong>Checklist tersimpan</strong></p>
-    <p>Isian checklist PM berhasil dikirim.</p>
+    <p>Tersimpan sebagai <strong>draft</strong>, menunggu review SPV.</p>
     <button type="button" class="btn-submit" id="btn-new-checklist">Isi checklist baru</button>
   </div>
 </div>
 
 <script src="js/sidebar.js"></script>
+<script type="module" src="js/auth.js"></script>
 <script type="module" src="js/checklist.js"></script>
 </body>
 </html>

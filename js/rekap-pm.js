@@ -1,18 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, REKAP_PASSWORD } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 import { CHECKLIST_CATEGORIES } from "./checklist-data.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ---------- ELEMENTS ----------
-const gateWrap = document.getElementById("gate-wrap");
-const gateForm = document.getElementById("gate-form");
-const gateInput = document.getElementById("gate-input");
-const gateError = document.getElementById("gate-error");
-const gateSubmitBtn = gateForm.querySelector('button[type="submit"]');
-const rekapWrap = document.getElementById("rekap-wrap");
-
 const fTanggalDari = document.getElementById("f-tanggal-dari");
 const fTanggalSampai = document.getElementById("f-tanggal-sampai");
 const fChecklist = document.getElementById("f-checklist");
@@ -33,71 +26,22 @@ const detailMeta = document.getElementById("pm-detail-meta");
 const detailBody = document.getElementById("pm-detail-body");
 const detailCatatan = document.getElementById("pm-detail-catatan");
 
-const ATTEMPTS_KEY = "rekap-pm-attempts";
-const MAX_ATTEMPTS = 5;
-
 // baris yang sedang tampil (hasil filter terakhir) — ini yang dipakai export
 let currentRows = [];
 
-// dipakai supaya init cuma jalan sekali
-let initialized = false;
+const REVIEW_LABEL = {
+  draft: "Menunggu review",
+  approved: "Disetujui",
+  rejected: "Ditolak",
+};
 
-// ---------- GERBANG PASSWORD (pakai password yang sama dengan Rekap Laporan) ----------
-function unlock() {
-  gateWrap.hidden = true;
-  gateWrap.style.display = "none";
-  rekapWrap.hidden = false;
-  init();
-}
-
-function getAttempts() {
-  return parseInt(sessionStorage.getItem(ATTEMPTS_KEY) || "0", 10);
-}
-
-function lockGate() {
-  gateInput.disabled = true;
-  gateSubmitBtn.disabled = true;
-  gateError.hidden = false;
-  gateError.textContent = `Sudah ${MAX_ATTEMPTS}x salah. Tutup dan buka lagi halaman ini (atau muat ulang) untuk coba lagi.`;
-}
-
-if (getAttempts() >= MAX_ATTEMPTS) {
-  lockGate();
-}
-
-gateForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const typed = gateInput.value.trim();
-
-  if (typed === REKAP_PASSWORD.trim()) {
-    sessionStorage.removeItem(ATTEMPTS_KEY);
-    gateError.hidden = true;
-    unlock();
-    return;
-  }
-
-  const attempts = getAttempts() + 1;
-  sessionStorage.setItem(ATTEMPTS_KEY, String(attempts));
-
-  if (attempts >= MAX_ATTEMPTS) {
-    lockGate();
-    return;
-  }
-
-  const sisaPercobaan = MAX_ATTEMPTS - attempts;
-  gateError.hidden = false;
-  gateError.textContent = `Password salah (kamu mengetik ${typed.length} karakter). Sisa percobaan: ${sisaPercobaan}x.`;
-  gateInput.value = "";
-  gateInput.focus();
-});
-
-// ---------- INIT (dipanggil sekali setelah unlock) ----------
+// ---------- INIT (halaman ini sudah dijaga role SPV lewat auth.js) ----------
 async function init() {
-  if (initialized) return;
-  initialized = true;
   loadFilterOptions();
   await loadSubmissions();
 }
+
+init();
 
 // Filter "Checklist" & "Periode" diisi dari data statis checklist-data.js,
 // jadi ga perlu query tambahan ke Supabase.
@@ -141,12 +85,12 @@ async function loadSubmissions() {
   clearError();
   btnExport.disabled = true;
   rekapCount.textContent = "Memuat data…";
-  rekapTbody.innerHTML = `<tr><td colspan="9" class="table-empty">Memuat data…</td></tr>`;
+  rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Memuat data…</td></tr>`;
 
   let query = supabase
     .from("pm_checklist_submission")
     .select(
-      "id, checklist_key, checklist_title, periode_label, equipment, area, bulan_tahun, items, tanggal_inspeksi, checked_by_opr, checked_by_spv, catatan"
+      "id, checklist_key, checklist_title, periode_label, equipment, area, bulan_tahun, items, tanggal_inspeksi, checked_by_opr, catatan, review_status, reviewed_by, reject_reason"
     )
     .order("tanggal_inspeksi", { ascending: false })
     .order("created_at", { ascending: false });
@@ -166,7 +110,7 @@ async function loadSubmissions() {
         ")"
     );
     rekapCount.textContent = "";
-    rekapTbody.innerHTML = `<tr><td colspan="9" class="table-empty">Gagal memuat data.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Gagal memuat data.</td></tr>`;
     return;
   }
 
@@ -178,7 +122,7 @@ async function loadSubmissions() {
 
 function renderTable(rows) {
   if (rows.length === 0) {
-    rekapTbody.innerHTML = `<tr><td colspan="9" class="table-empty">Tidak ada checklist untuk filter ini.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Tidak ada checklist untuk filter ini.</td></tr>`;
     return;
   }
 
@@ -193,12 +137,29 @@ function renderTable(rows) {
       <td>${escapeHtml(row.area ?? "")}</td>
       <td>${escapeHtml(row.bulan_tahun ?? "")}</td>
       <td>${escapeHtml(row.checked_by_opr ?? "")}</td>
-      <td>${escapeHtml(row.checked_by_spv ?? "")}</td>
+      <td>${escapeHtml(spvChecker(row) || "—")}</td>
+      <td>${renderReviewBadge(row)}</td>
       <td><button type="button" class="btn-link-btn pm-detail-btn">Lihat detail</button></td>
     `;
     tr.querySelector(".pm-detail-btn").addEventListener("click", () => openDetail(row));
     rekapTbody.appendChild(tr);
   }
+}
+
+// "Checked by SPV" sekarang bukan isian manual lagi — diambil dari siapa
+// yang approve/reject checklist ini di halaman Draft (kolom reviewed_by).
+// Selama masih draft (belum direview), belum ada nama SPV untuk ditampilkan.
+function spvChecker(row) {
+  return row.review_status !== "draft" ? row.reviewed_by || "" : "";
+}
+
+function renderReviewBadge(row) {
+  const label = REVIEW_LABEL[row.review_status] || row.review_status || "";
+  let html = `<span class="review-badge review-badge--${row.review_status}">${label}</span>`;
+  if (row.review_status === "rejected" && row.reject_reason) {
+    html += `<p class="rekap-reject-reason">${escapeHtml(row.reject_reason)}</p>`;
+  }
+  return html;
 }
 
 // ---------- DETAIL MODAL ----------
@@ -211,7 +172,8 @@ function openDetail(row) {
     <div><span>Area</span><p>${escapeHtml(row.area || "—")}</p></div>
     <div><span>Bulan/Tahun</span><p>${escapeHtml(row.bulan_tahun || "—")}</p></div>
     <div><span>Diperiksa OPR</span><p>${escapeHtml(row.checked_by_opr || "—")}</p></div>
-    <div><span>Diperiksa SPV</span><p>${escapeHtml(row.checked_by_spv || "—")}</p></div>
+    <div><span>Diperiksa SPV</span><p>${escapeHtml(spvChecker(row) || "—")}</p></div>
+    <div><span>Review</span><p>${renderReviewBadge(row)}</p></div>
   `;
 
   const items = row.items || [];
@@ -340,9 +302,11 @@ btnExport.addEventListener("click", () => {
       Area: row.area ?? "",
       "Bulan/Tahun": row.bulan_tahun ?? "",
       "Diperiksa OPR": row.checked_by_opr ?? "",
-      "Diperiksa SPV": row.checked_by_spv ?? "",
+      "Diperiksa SPV": spvChecker(row),
       Catatan: row.catatan ?? "",
       "Isian Checklist": ringkasan,
+      Review: REVIEW_LABEL[row.review_status] || row.review_status || "",
+      "Alasan Ditolak": row.reject_reason ?? "",
     };
   });
 
@@ -358,6 +322,8 @@ btnExport.addEventListener("click", () => {
     { wch: 16 }, // Diperiksa SPV
     { wch: 30 }, // Catatan
     { wch: 60 }, // Isian Checklist
+    { wch: 16 }, // Review
+    { wch: 30 }, // Alasan Ditolak
   ];
 
   const workbook = XLSX.utils.book_new();

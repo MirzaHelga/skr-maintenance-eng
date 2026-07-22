@@ -834,6 +834,62 @@ textarea { resize: vertical; min-height: 90px; }
 
 .col-deskripsi { max-width: 320px; }
 
+/* ---------- TABEL KELOLA USER (kelola-user.html) ---------- */
+
+#user-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 720px;
+  font-size: 13.5px;
+}
+
+#user-table th, #user-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+#user-table th {
+  background: #F7F8F7;
+  font-family: var(--font-display);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+#user-table tbody tr:last-child td { border-bottom: none; }
+#user-table tbody tr:hover { background: #FAFAF9; }
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-user-action {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn-user-action:active { transform: translateY(1px); }
+
+.btn-user-action.btn-secondary { padding: 8px 14px; }
+
+.btn-toggle-on { background: var(--running); color: #fff; }
+.btn-toggle-off {
+  background: color-mix(in srgb, var(--breakdown) 10%, white);
+  color: var(--breakdown);
+  border: 1.5px solid color-mix(in srgb, var(--breakdown) 35%, white);
+}
+
 .table-empty {
   text-align: center;
   color: var(--ink-soft);
@@ -1024,13 +1080,9 @@ textarea { resize: vertical; min-height: 90px; }
 
 .dash-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
   gap: 12px;
   margin-bottom: 18px;
-}
-
-@media (min-width: 700px) {
-  .dash-stats { grid-template-columns: repeat(4, 1fr); }
 }
 
 .dash-stat-card {
@@ -1536,3 +1588,459 @@ thead .checklist-grid-uraian-head {
   border-color: var(--steel);
   box-shadow: 0 0 0 2px rgba(35, 70, 105, 0.15);
 }
+
+/* ============================================================
+   MODUL: DRAFT & REVIEW (login, sidebar footer, notifikasi,
+   draft.html, review badge, modal tolak, kartu dashboard)
+   ============================================================ */
+
+/* ---------- LOGIN (login.html) ---------- */
+
+.login-gate-wrap .gate-card {
+  max-width: 380px;
+}
+
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.role-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.role-chip:hover {
+  border-color: var(--steel);
+}
+
+.role-chip.selected {
+  border-color: var(--steel-dark);
+  background: var(--steel-soft);
+  box-shadow: 0 0 0 2px rgba(35, 70, 105, 0.15);
+}
+
+.role-chip-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.role-chip.selected .role-chip-title {
+  color: var(--steel-dark);
+}
+
+.role-chip-sub {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
+#login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- SIDEBAR FOOTER: nama + peran + keluar ---------- */
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sidebar-role {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sidebar-role-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sidebar-role-dot--operator { background: var(--steel); }
+.sidebar-role-dot--spv { background: var(--amber); }
+.sidebar-role-dot--superadmin { background: var(--red, #d64545); }
+
+.sidebar-role-name {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 130px;
+}
+
+.sidebar-role-label {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.sidebar-logout {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sidebar-logout:hover {
+  border-color: var(--breakdown);
+  color: var(--breakdown);
+}
+
+/* ---------- LONCENG NOTIFIKASI (topbar, khusus SPV) ---------- */
+
+.notif-bell-wrap {
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.notif-bell {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.notif-bell:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--breakdown);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 2px solid var(--steel-dark);
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  max-width: 80vw;
+  background: var(--card);
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 32px rgba(20, 40, 59, 0.25);
+  padding: 14px;
+  z-index: 250;
+}
+
+.notif-dropdown[hidden] { display: none; }
+
+.notif-dropdown-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  display: block;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--paper);
+  text-decoration: none;
+}
+
+.notif-item:hover { background: var(--steel-soft); }
+
+.notif-item-title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.notif-item-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.notif-empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  text-align: center;
+  padding: 10px 0;
+}
+
+.notif-see-all {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--steel);
+  text-decoration: none;
+}
+
+.notif-see-all:hover { text-decoration: underline; }
+
+/* ---------- REVIEW BADGE (rekap.html, rekap-pm.html, draft.html) ---------- */
+
+.review-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #fff;
+}
+
+.review-badge--draft { background: var(--amber); }
+.review-badge--approved { background: var(--running); }
+.review-badge--rejected { background: var(--breakdown); }
+
+.rekap-reject-reason {
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  max-width: 220px;
+}
+
+/* ---------- HALAMAN DRAFT (draft.html) ---------- */
+
+.draft-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  margin-bottom: 16px;
+}
+
+.draft-tab {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 13.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.draft-tab:hover { border-color: var(--steel); }
+
+.draft-tab.active {
+  background: var(--steel-dark);
+  border-color: var(--steel-dark);
+  color: #fff;
+}
+
+.draft-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  margin-bottom: 40px;
+}
+
+.draft-card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+
+.draft-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.draft-type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.draft-type-badge--laporan {
+  background: var(--steel-soft);
+  color: var(--steel-dark);
+}
+
+.draft-type-badge--checklist {
+  background: color-mix(in srgb, var(--amber) 20%, white);
+  color: #8A5A0F;
+}
+
+.draft-card-title {
+  margin: 0 0 2px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--ink);
+}
+
+.draft-card-meta {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.draft-card-desc {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.draft-card-pic {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.draft-review-footer {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.draft-reject-reason { color: var(--breakdown); }
+
+.draft-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn-approve, .btn-reject {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.btn-approve {
+  background: var(--running);
+  color: #fff;
+}
+
+.btn-reject {
+  background: color-mix(in srgb, var(--breakdown) 10%, white);
+  color: var(--breakdown);
+  border: 1.5px solid color-mix(in srgb, var(--breakdown) 35%, white);
+}
+
+.btn-approve:active, .btn-reject:active { transform: translateY(1px); }
+
+/* ---------- MODAL ALASAN TOLAK (draft.html) ---------- */
+
+.reject-modal-card { max-width: 420px; }
+
+#reject-reason {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  padding: 11px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
+  resize: vertical;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+
+#reject-reason:focus {
+  outline: none;
+  border-color: var(--steel);
+  box-shadow: 0 0 0 3px rgba(35, 70, 105, 0.15);
+}
+
+.reject-confirm-btn {
+  width: 100%;
+  background: var(--breakdown);
+}
+
+/* ---------- DASHBOARD: kartu "Draft menunggu review" (index.html) ---------- */
+
+.dash-stat-draft {
+  background: color-mix(in srgb, var(--amber) 12%, white);
+  border-color: color-mix(in srgb, var(--amber) 35%, white);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dash-stat-draft .dash-stat-value { color: #8A5A0F; }
