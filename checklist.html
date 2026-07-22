@@ -24,7 +24,7 @@
       </div>
     </div>
     <div class="sidebar-nav">
-      <a href="index.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
+      <a href="dashboard.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
       <a href="laporan.html" class="sidebar-link" data-role="all">Input laporan</a>
       <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
       <a href="pm.html" class="sidebar-link active" data-role="all">Checklist PM</a>
@@ -103,6 +103,19 @@
             <select id="select-opr" required>
               <option value="" disabled selected>Memuat data operator…</option>
             </select>
+          </section>
+
+          <section class="field">
+            <label class="field-label">Foto evidence</label>
+            <div class="photo-input">
+              <input type="file" id="input-foto-camera" accept="image/*" capture="environment" hidden />
+              <input type="file" id="input-foto-gallery" accept="image/*" multiple hidden />
+              <div class="photo-buttons">
+                <button type="button" id="btn-foto-camera" class="photo-btn" hidden>Ambil foto</button>
+                <button type="button" id="btn-foto-gallery" class="photo-btn">Upload foto</button>
+              </div>
+              <div class="photo-preview-grid" id="photo-preview-grid"></div>
+            </div>
           </section>
 
           <section class="field">

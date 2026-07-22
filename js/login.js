@@ -9,7 +9,7 @@ const submitBtn = form.querySelector('button[type="submit"]');
 // Kalau sudah login (sesi masih ada), langsung lempar ke halaman awal role-nya.
 const existingRole = getRole();
 if (existingRole) {
-  window.location.href = DEFAULT_PAGE[existingRole] || "index.html";
+  window.location.href = DEFAULT_PAGE[existingRole] || "dashboard.html";
 }
 
 const ATTEMPTS_KEY = "login-attempts";
@@ -54,7 +54,7 @@ form.addEventListener("submit", async (e) => {
     setSession(result.user);
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next");
-    window.location.href = next || DEFAULT_PAGE[result.user.role] || "index.html";
+    window.location.href = next || DEFAULT_PAGE[result.user.role] || "dashboard.html";
     return;
   }
 

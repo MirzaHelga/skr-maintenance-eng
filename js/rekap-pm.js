@@ -24,6 +24,7 @@ const detailTitle = document.getElementById("pm-detail-title");
 const detailSub = document.getElementById("pm-detail-sub");
 const detailMeta = document.getElementById("pm-detail-meta");
 const detailBody = document.getElementById("pm-detail-body");
+const detailFoto = document.getElementById("pm-detail-foto");
 const detailCatatan = document.getElementById("pm-detail-catatan");
 
 // baris yang sedang tampil (hasil filter terakhir) — ini yang dipakai export
@@ -85,12 +86,12 @@ async function loadSubmissions() {
   clearError();
   btnExport.disabled = true;
   rekapCount.textContent = "Memuat data…";
-  rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Memuat data…</td></tr>`;
+  rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Memuat data…</td></tr>`;
 
   let query = supabase
     .from("pm_checklist_submission")
     .select(
-      "id, checklist_key, checklist_title, periode_label, equipment, area, bulan_tahun, items, tanggal_inspeksi, checked_by_opr, catatan, review_status, reviewed_by, reject_reason"
+      "id, checklist_key, checklist_title, periode_label, equipment, area, bulan_tahun, items, tanggal_inspeksi, checked_by_opr, catatan, review_status, reviewed_by, reject_reason, pm_checklist_foto(foto_url)"
     )
     .order("tanggal_inspeksi", { ascending: false })
     .order("created_at", { ascending: false });
@@ -110,7 +111,7 @@ async function loadSubmissions() {
         ")"
     );
     rekapCount.textContent = "";
-    rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Gagal memuat data.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Gagal memuat data.</td></tr>`;
     return;
   }
 
@@ -122,7 +123,7 @@ async function loadSubmissions() {
 
 function renderTable(rows) {
   if (rows.length === 0) {
-    rekapTbody.innerHTML = `<tr><td colspan="10" class="table-empty">Tidak ada checklist untuk filter ini.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Tidak ada checklist untuk filter ini.</td></tr>`;
     return;
   }
 
@@ -138,12 +139,20 @@ function renderTable(rows) {
       <td>${escapeHtml(row.bulan_tahun ?? "")}</td>
       <td>${escapeHtml(row.checked_by_opr ?? "")}</td>
       <td>${escapeHtml(spvChecker(row) || "—")}</td>
+      <td>${renderFotoLinks(row.pm_checklist_foto)}</td>
       <td>${renderReviewBadge(row)}</td>
       <td><button type="button" class="btn-link-btn pm-detail-btn">Lihat detail</button></td>
     `;
     tr.querySelector(".pm-detail-btn").addEventListener("click", () => openDetail(row));
     rekapTbody.appendChild(tr);
   }
+}
+
+function renderFotoLinks(fotos) {
+  if (!fotos || fotos.length === 0) return "—";
+  return fotos
+    .map((f, i) => `<a href="${f.foto_url}" target="_blank" rel="noopener">Foto ${i + 1}</a>`)
+    .join(", ");
 }
 
 // "Checked by SPV" sekarang bukan isian manual lagi — diambil dari siapa
@@ -243,7 +252,30 @@ function openDetail(row) {
     ? `<p><span>Catatan:</span> ${escapeHtml(row.catatan)}</p>`
     : "";
 
+  renderDetailFoto(row.pm_checklist_foto);
+
   detailOverlay.hidden = false;
+}
+
+function renderDetailFoto(fotos) {
+  if (!fotos || fotos.length === 0) {
+    detailFoto.innerHTML = "";
+    return;
+  }
+  detailFoto.innerHTML = `
+    <p class="pm-detail-foto-label">Foto evidence (${fotos.length})</p>
+    <div class="pm-detail-foto-grid">
+      ${fotos
+        .map(
+          (f) => `
+        <a href="${f.foto_url}" target="_blank" rel="noopener">
+          <img src="${f.foto_url}" alt="Foto evidence checklist" loading="lazy" />
+        </a>
+      `
+        )
+        .join("")}
+    </div>
+  `;
 }
 
 function closeDetail() {
@@ -305,6 +337,7 @@ btnExport.addEventListener("click", () => {
       "Diperiksa SPV": spvChecker(row),
       Catatan: row.catatan ?? "",
       "Isian Checklist": ringkasan,
+      "Link Foto": (row.pm_checklist_foto || []).map((f) => f.foto_url).join("; "),
       Review: REVIEW_LABEL[row.review_status] || row.review_status || "",
       "Alasan Ditolak": row.reject_reason ?? "",
     };
@@ -322,6 +355,7 @@ btnExport.addEventListener("click", () => {
     { wch: 16 }, // Diperiksa SPV
     { wch: 30 }, // Catatan
     { wch: 60 }, // Isian Checklist
+    { wch: 40 }, // Link Foto
     { wch: 16 }, // Review
     { wch: 30 }, // Alasan Ditolak
   ];

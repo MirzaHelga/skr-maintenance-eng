@@ -63,6 +63,7 @@ sql/                           jalankan urut sesuai nomor di bagian setup di baw
   add_pm_checklist.sql
   add_draft_workflow.sql
   add_user_accounts.sql
+  add_pm_checklist_foto.sql
 
 data/
   master_data.json             data mentah hasil olahan Excel (referensi/backup)
@@ -102,6 +103,10 @@ dari file sebelumnya:
    username, password ter-hash, nama, role, aktif/tidak), plus 1 akun
    superadmin awal (`admin` / `admin123` — **ganti lewat halaman Kelola
    User begitu bisa login**).
+8. `sql/add_pm_checklist_foto.sql` — tabel `pm_checklist_foto`, supaya 1
+   Checklist PM bisa punya beberapa foto evidence (dari kamera maupun
+   galeri, sama seperti `laporan_foto`); dan storage bucket
+   `foto-checklist-pm` (public) untuk foto upload-nya.
 
 ### 3. Ambil API key
 **Project Settings → API**. Salin:

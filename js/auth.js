@@ -15,8 +15,8 @@ export const ROLE_LABEL = {
 // yang bukan haknya.
 export const DEFAULT_PAGE = {
   operator: "laporan.html",
-  spv: "index.html",
-  superadmin: "index.html",
+  spv: "dashboard.html",
+  superadmin: "dashboard.html",
 };
 
 // ---------- HASH PASSWORD (SHA-256, lewat Web Crypto API bawaan browser) ----------
@@ -91,7 +91,7 @@ export function setSession(user) {
 
 export function logout() {
   sessionStorage.removeItem(SESSION_KEY);
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 }
 
 // Nama yang tampil di kolom "diinput/direview oleh" — pakai nama akun
@@ -122,11 +122,11 @@ function guard() {
   const session = getSession();
 
   if (!session) {
-    window.location.href = "login.html?next=" + encodeURIComponent(currentPageFile());
+    window.location.href = "index.html?next=" + encodeURIComponent(currentPageFile());
     return;
   }
   if (!allowed.includes(session.role)) {
-    window.location.href = DEFAULT_PAGE[session.role] || "login.html";
+    window.location.href = DEFAULT_PAGE[session.role] || "index.html";
     return;
   }
 

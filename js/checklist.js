@@ -29,6 +29,11 @@ const labelUraian = document.getElementById("label-uraian");
 const gridHint = document.getElementById("checklist-grid-hint");
 const itemsContainer = document.getElementById("checklist-items");
 const selectOpr = document.getElementById("select-opr");
+const inputFotoCamera = document.getElementById("input-foto-camera");
+const inputFotoGallery = document.getElementById("input-foto-gallery");
+const btnFotoCamera = document.getElementById("btn-foto-camera");
+const btnFotoGallery = document.getElementById("btn-foto-gallery");
+const photoPreviewGrid = document.getElementById("photo-preview-grid");
 const inputCatatan = document.getElementById("input-catatan");
 const formError = document.getElementById("form-error");
 const btnSubmit = document.getElementById("btn-submit");
@@ -80,6 +85,80 @@ function oprKaryawanNama() {
 }
 
 loadKaryawan();
+
+// ---------- FOTO EVIDENCE ----------
+// Sama persis pola-nya dengan foto di Input Laporan (js/app.js): bisa
+// ambil dari kamera (HP) dan/atau upload banyak sekaligus dari galeri.
+let selectedFiles = []; // array of { id, file }
+let photoIdCounter = 0;
+
+function addFiles(fileList) {
+  for (const file of fileList) {
+    selectedFiles.push({ id: ++photoIdCounter, file });
+  }
+  renderPhotoGrid();
+}
+
+function removeFile(id) {
+  selectedFiles = selectedFiles.filter((item) => item.id !== id);
+  renderPhotoGrid();
+}
+
+function renderPhotoGrid() {
+  photoPreviewGrid.innerHTML = "";
+  for (const item of selectedFiles) {
+    const cell = document.createElement("div");
+    cell.className = "photo-cell";
+
+    const img = document.createElement("img");
+    img.alt = "Preview foto";
+    const reader = new FileReader();
+    reader.onload = (e) => { img.src = e.target.result; };
+    reader.readAsDataURL(item.file);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "photo-cell-remove";
+    removeBtn.setAttribute("aria-label", "Hapus foto");
+    removeBtn.textContent = "✕";
+    removeBtn.addEventListener("click", () => removeFile(item.id));
+
+    cell.appendChild(img);
+    cell.appendChild(removeBtn);
+    photoPreviewGrid.appendChild(cell);
+  }
+}
+
+btnFotoCamera.addEventListener("click", () => inputFotoCamera.click());
+btnFotoGallery.addEventListener("click", () => inputFotoGallery.click());
+
+// Tombol "Ambil foto" (kamera) cuma ditampilkan di HP.
+const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if (isMobileDevice) {
+  btnFotoCamera.hidden = false;
+}
+
+inputFotoCamera.addEventListener("change", () => {
+  addFiles(inputFotoCamera.files);
+  inputFotoCamera.value = "";
+});
+
+inputFotoGallery.addEventListener("change", () => {
+  addFiles(inputFotoGallery.files);
+  inputFotoGallery.value = "";
+});
+
+async function uploadPhoto(file) {
+  const ext = file.name.split(".").pop();
+  const path = `checklist-pm/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("foto-checklist-pm").upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from("foto-checklist-pm").getPublicUrl(path);
+  return data.publicUrl;
+}
 
 const params = new URLSearchParams(window.location.search);
 const checklistId = params.get("id");
@@ -246,6 +325,14 @@ function initChecklist(def) {
 
       if (error) throw error;
 
+      if (selectedFiles.length > 0) {
+        const fotoUrls = await Promise.all(selectedFiles.map((item) => uploadPhoto(item.file)));
+        const { error: fotoError } = await supabase
+          .from("pm_checklist_foto")
+          .insert(fotoUrls.map((url) => ({ submission_id: inserted.id, foto_url: url })));
+        if (fotoError) throw fotoError;
+      }
+
       kirimNotifikasiSpv({
         tipe: "pm_checklist",
         refId: inserted.id,
@@ -268,6 +355,8 @@ function initChecklist(def) {
     inputPeriode.value = def.periodeLabel;
     const t = new Date();
     inputTanggal.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+    selectedFiles = [];
+    renderPhotoGrid();
     successOverlay.hidden = true;
   });
 }
