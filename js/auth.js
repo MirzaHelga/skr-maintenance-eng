@@ -146,7 +146,7 @@ function initShell(role) {
 
   addSidebarFooter(role);
 
-  if (role === "spv") {
+  if (role === "spv" || role === "superadmin") {
     setupNotificationBell();
   }
 }
@@ -191,7 +191,7 @@ async function setupNotificationBell() {
       <div class="notif-list" id="notif-list">
         <p class="notif-empty">Memuat…</p>
       </div>
-      <a href="draft.html" class="notif-see-all">Lihat semua draft &rarr;</a>
+      <a href="draft.html" class="notif-see-all">Lihat semua draft</a>
     </div>
   `;
 
@@ -201,10 +201,21 @@ async function setupNotificationBell() {
     topbarInner.appendChild(bellWrap);
   }
 
+  const overlay = document.createElement("div");
+  overlay.className = "notif-overlay";
+  overlay.id = "notif-overlay";
+  overlay.hidden = true;
+  document.body.appendChild(overlay);
+
   const bellBtn = bellWrap.querySelector("#notif-bell");
   const dropdown = bellWrap.querySelector("#notif-dropdown");
   const badge = bellWrap.querySelector("#notif-badge");
   const list = bellWrap.querySelector("#notif-list");
+
+  function toggleDropdown(show) {
+    dropdown.hidden = !show;
+    overlay.hidden = !show;
+  }
 
   async function refresh() {
     const { data, error } = await supabase
@@ -242,11 +253,12 @@ async function setupNotificationBell() {
 
   bellBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    dropdown.hidden = !dropdown.hidden;
+    toggleDropdown(dropdown.hidden);
   });
   document.addEventListener("click", (e) => {
-    if (!bellWrap.contains(e.target)) dropdown.hidden = true;
+    if (!bellWrap.contains(e.target)) toggleDropdown(false);
   });
+  overlay.addEventListener("click", () => toggleDropdown(false));
 
   refresh();
   // Polling ringan, bukan realtime — cukup buat kebutuhan "ada draft baru".

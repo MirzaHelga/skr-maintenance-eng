@@ -1758,6 +1758,9 @@ thead .checklist-grid-uraian-head {
   right: 68px; /* 20px (jarak menu-btn ke tepi) + 40px (lebar menu-btn) + 8px jarak antar ikon */
   transform: translateY(-50%);
   flex-shrink: 0;
+  z-index: 250; /* transform di atas bikin elemen ini stacking context baru,
+                   jadi z-index harus diset di sini juga (bukan cuma di .notif-dropdown)
+                   biar menang tumpuk dibanding .notif-overlay (z-index: 240) */
 }
 
 .notif-bell {
@@ -1800,10 +1803,10 @@ thead .checklist-grid-uraian-head {
 
 .notif-dropdown {
   position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
+  top: calc(100% + 14px);
+  right: -8px;
   width: 280px;
-  max-width: 80vw;
+  max-width: calc(100vw - 32px);
   background: var(--card);
   border-radius: 14px;
   border: 1px solid var(--line);
@@ -1813,6 +1816,28 @@ thead .checklist-grid-uraian-head {
 }
 
 .notif-dropdown[hidden] { display: none; }
+
+.notif-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 22px;
+  width: 12px;
+  height: 12px;
+  background: var(--card);
+  border-left: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  transform: rotate(45deg);
+}
+
+.notif-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 47, 69, 0.35);
+  z-index: 240;
+}
+
+.notif-overlay[hidden] { display: none; }
 
 .notif-dropdown-title {
   margin: 0 0 10px;
