@@ -77,7 +77,7 @@ html, body {
 }
 
 @media (max-width: 639px) {
-  .topbar-inner { padding-right: 54px; }
+  .topbar-inner { padding-right: 116px; }
 }
 
 /* ---------- HAMBURGER + SIDEBAR ---------- */
@@ -1753,8 +1753,10 @@ thead .checklist-grid-uraian-head {
 /* ---------- LONCENG NOTIFIKASI (topbar, khusus SPV) ---------- */
 
 .notif-bell-wrap {
-  position: relative;
-  margin-left: auto;
+  position: absolute;
+  top: 50%;
+  right: 68px; /* 20px (jarak menu-btn ke tepi) + 40px (lebar menu-btn) + 8px jarak antar ikon */
+  transform: translateY(-50%);
   flex-shrink: 0;
 }
 
