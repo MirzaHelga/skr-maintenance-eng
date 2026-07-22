@@ -29,7 +29,10 @@ rekap.html                     rekap laporan + export Excel (SPV & superadmin)
 pm.html                        pilih equipment & periode checklist PM (semua role)
 checklist.html                 form isian checklist PM (semua role)
 rekap-pm.html                  rekap checklist PM + detail + export Excel (SPV & superadmin)
-draft.html                     tinjau & approve/reject draft (SPV & superadmin)
+production.html                pilih equipment & periode form Production (semua role)
+production-checklist.html      form isian checklist Production (semua role)
+rekap-production.html          rekap Production + detail + export Excel (SPV & superadmin)
+draft.html                     tinjau & approve/reject draft (SPV & superadmin) — laporan, Checklist PM, & Production
 kelola-user.html               kelola akun: tambah/edit/reset password/nonaktifkan (khusus superadmin)
 
 css/
@@ -45,6 +48,12 @@ js/
   checklist.js                 logic form Checklist PM
   checklist-data.js            daftar checklist per equipment/periode (data statis)
   pm.js                        logic halaman pilih checklist PM
+  production-checklist.js      logic form Production (sama pola dengan checklist.js)
+  production-data.js           daftar checklist Production per equipment/periode (data statis,
+                                sumbernya file Excel "Maintenance Task List" per line — sudah ada
+                                Extrusion & Gummy Candy, line lain menyusul)
+  production.js                logic halaman pilih checklist Production
+  rekap-production.js          rekap Production: filter, tabel, badge review, export Excel
   rekap.js                     rekap laporan: filter, tabel, badge review, export Excel
   rekap-pm.js                  rekap checklist PM: filter, detail, badge review, export Excel
   draft.js                     logic halaman Draft: tab status, approve/reject
@@ -107,6 +116,13 @@ dari file sebelumnya:
    Checklist PM bisa punya beberapa foto evidence (dari kamera maupun
    galeri, sama seperti `laporan_foto`); dan storage bucket
    `foto-checklist-pm` (public) untuk foto upload-nya.
+9. `sql/add_production_checklist.sql` — modul baru **Production**
+   (`production.html` / `production-checklist.html`): tabel
+   `production_checklist_submission` + `production_checklist_foto`,
+   storage bucket `foto-production-checklist`, dan izin tipe
+   `production_checklist` di tabel `notifikasi`. Alurnya sama persis
+   dengan Checklist PM (draft → review SPV → rekap). Datanya ada di
+   `js/production-data.js`.
 
 ### 3. Ambil API key
 **Project Settings → API**. Salin:

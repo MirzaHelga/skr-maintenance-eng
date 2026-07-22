@@ -29,6 +29,8 @@
       <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
       <a href="pm.html" class="sidebar-link" data-role="all">Checklist PM</a>
       <a href="rekap-pm.html" class="sidebar-link" data-role="spv,superadmin">Rekap Checklist PM</a>
+      <a href="production.html" class="sidebar-link" data-role="all">Production</a>
+      <a href="rekap-production.html" class="sidebar-link" data-role="spv,superadmin">Rekap Production</a>
       <a href="draft.html" class="sidebar-link active" data-role="spv,superadmin">Draft</a>
       <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
     </div>
@@ -72,6 +74,19 @@
 </div>
 
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- MODAL LIHAT DETAIL -->
+<div class="pm-detail-overlay" id="pm-detail-overlay" hidden>
+  <div class="pm-detail-card">
+    <button type="button" class="pm-detail-close" id="pm-detail-close" aria-label="Tutup">&times;</button>
+    <p class="pm-detail-title" id="pm-detail-title"></p>
+    <p class="pm-detail-sub" id="pm-detail-sub"></p>
+    <div class="pm-detail-meta" id="pm-detail-meta"></div>
+    <div class="pm-detail-body" id="pm-detail-body"></div>
+    <div class="pm-detail-foto" id="pm-detail-foto"></div>
+    <div class="pm-detail-catatan" id="pm-detail-catatan"></div>
+  </div>
+</div>
 
 <!-- MODAL ALASAN TOLAK -->
 <div class="pm-detail-overlay" id="reject-overlay" hidden>

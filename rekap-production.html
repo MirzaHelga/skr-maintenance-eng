@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Rekap Checklist PM</title>
+<title>Rekap Production</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body data-page="rekap-pm" data-allow="spv,superadmin">
+<body data-page="rekap-production" data-allow="spv,superadmin">
 
 <div class="app-shell">
 
@@ -28,9 +28,9 @@
       <a href="laporan.html" class="sidebar-link" data-role="all">Input laporan</a>
       <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
       <a href="pm.html" class="sidebar-link" data-role="all">Checklist PM</a>
-      <a href="rekap-pm.html" class="sidebar-link active" data-role="spv,superadmin">Rekap Checklist PM</a>
+      <a href="rekap-pm.html" class="sidebar-link" data-role="spv,superadmin">Rekap Checklist PM</a>
       <a href="production.html" class="sidebar-link" data-role="all">Production</a>
-      <a href="rekap-production.html" class="sidebar-link" data-role="spv,superadmin">Rekap Production</a>
+      <a href="rekap-production.html" class="sidebar-link active" data-role="spv,superadmin">Rekap Production</a>
       <a href="draft.html" class="sidebar-link" data-role="spv,superadmin">Draft</a>
       <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
     </div>
@@ -44,8 +44,8 @@
           <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
         </div>
         <div class="topbar-text">
-          <span class="topbar-title">Rekap Checklist PM</span>
-          <span class="topbar-sub">Riwayat checklist preventive maintenance</span>
+          <span class="topbar-title">Rekap Production</span>
+          <span class="topbar-sub">Riwayat checklist maintenance line produksi</span>
         </div>
         <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
           <span></span><span></span><span></span>
@@ -138,6 +138,6 @@
 
 <script src="js/sidebar.js"></script>
 <script type="module" src="js/auth.js"></script>
-<script type="module" src="js/rekap-pm.js"></script>
+<script type="module" src="js/rekap-production.js"></script>
 </body>
 </html>

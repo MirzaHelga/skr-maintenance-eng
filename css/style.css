@@ -1333,6 +1333,44 @@ textarea { resize: vertical; min-height: 90px; }
 }
 /* ---------- PM CHECKLIST: index (pm.html) ---------- */
 
+.pm-select-card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pm-select-label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.pm-select-card select {
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  width: 100%;
+}
+
+.pm-empty {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding: 24px 4px;
+  text-align: center;
+}
+
 .pm-category {
   margin-bottom: 28px;
 }
@@ -1431,6 +1469,78 @@ textarea { resize: vertical; min-height: 90px; }
 
 .pm-rekap-link:hover {
   text-decoration: underline;
+}
+
+/* ---------- PRODUCTION: pilih line (Extrusion / Gummy / Hard Boiled Candy) ---------- */
+
+.production-line-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 640px) {
+  .production-line-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 960px) {
+  .production-line-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+.production-line-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 22px 20px;
+  text-decoration: none;
+  border-top: 4px solid var(--steel);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.production-line-card:hover {
+  border-color: var(--steel);
+  transform: translateY(-1px);
+}
+
+.production-line-card--gummy {
+  border-top-color: var(--amber);
+}
+
+.production-line-card--hard-boiled-candy {
+  border-top-color: var(--running);
+}
+
+.production-line-card-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.production-line-card-desc {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.production-line-card-cta {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--steel);
+}
+
+.production-line-card--gummy .production-line-card-cta {
+  color: var(--maintenance);
+}
+
+.production-line-card--hard-boiled-candy .production-line-card-cta {
+  color: var(--running);
 }
 
 /* ---------- PM CHECKLIST: form rows (checklist.html) ---------- */
@@ -2036,8 +2146,14 @@ thead .checklist-grid-uraian-head {
 
 .draft-actions {
   display: flex;
+  align-items: center;
   gap: 10px;
   margin-top: 12px;
+}
+
+.draft-actions .pm-detail-btn {
+  flex: 0 0 auto;
+  margin-right: auto;
 }
 
 .btn-approve, .btn-reject {

@@ -16,6 +16,15 @@ const rejectReason = document.getElementById("reject-reason");
 const rejectError = document.getElementById("reject-error");
 const rejectConfirm = document.getElementById("reject-confirm");
 
+const detailOverlay = document.getElementById("pm-detail-overlay");
+const detailClose = document.getElementById("pm-detail-close");
+const detailTitle = document.getElementById("pm-detail-title");
+const detailSub = document.getElementById("pm-detail-sub");
+const detailMeta = document.getElementById("pm-detail-meta");
+const detailBody = document.getElementById("pm-detail-body");
+const detailFoto = document.getElementById("pm-detail-foto");
+const detailCatatan = document.getElementById("pm-detail-catatan");
+
 let currentStatus = "draft";
 let pendingReject = null; // { tipe, id }
 
@@ -60,6 +69,12 @@ function formatWaktu(iso) {
   });
 }
 
+function formatTanggal(tanggal) {
+  if (!tanggal) return "";
+  const [y, m, d] = tanggal.split("-");
+  return `${d}-${m}-${y}`;
+}
+
 // ---------- MUAT DATA ----------
 async function loadDrafts() {
   clearError();
@@ -69,29 +84,37 @@ async function loadDrafts() {
   let laporanQuery = supabase
     .from("laporan")
     .select(
-      "id, tanggal, jam, shift, status, deskripsi, pic, review_status, reviewed_by, reviewed_at, reject_reason, created_at, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama)"
+      "id, tanggal, jam, shift, status, deskripsi, pic, review_status, reviewed_by, reviewed_at, reject_reason, created_at, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)"
     )
     .order("created_at", { ascending: false });
 
   let checklistQuery = supabase
     .from("pm_checklist_submission")
     .select(
-      "id, checklist_title, periode_label, equipment, area, bulan_tahun, tanggal_inspeksi, checked_by_opr, catatan, review_status, reviewed_by, reviewed_at, reject_reason, created_at"
+      "id, checklist_title, periode_label, equipment, area, bulan_tahun, items, tanggal_inspeksi, checked_by_opr, catatan, review_status, reviewed_by, reviewed_at, reject_reason, created_at, pm_checklist_foto(foto_url)"
+    )
+    .order("created_at", { ascending: false });
+
+  let productionQuery = supabase
+    .from("production_checklist_submission")
+    .select(
+      "id, checklist_title, periode_label, equipment, area, bulan_tahun, items, tanggal_inspeksi, checked_by_opr, catatan, review_status, reviewed_by, reviewed_at, reject_reason, created_at, production_checklist_foto(foto_url)"
     )
     .order("created_at", { ascending: false });
 
   if (currentStatus) {
     laporanQuery = laporanQuery.eq("review_status", currentStatus);
     checklistQuery = checklistQuery.eq("review_status", currentStatus);
+    productionQuery = productionQuery.eq("review_status", currentStatus);
   }
 
-  const [laporanRes, checklistRes] = await Promise.all([laporanQuery, checklistQuery]);
+  const [laporanRes, checklistRes, productionRes] = await Promise.all([laporanQuery, checklistQuery, productionQuery]);
 
-  if (laporanRes.error || checklistRes.error) {
-    console.error(laporanRes.error || checklistRes.error);
+  if (laporanRes.error || checklistRes.error || productionRes.error) {
+    console.error(laporanRes.error || checklistRes.error || productionRes.error);
     showError(
-      "Gagal memuat data draft. Pastikan sql/add_draft_workflow.sql sudah dijalankan di Supabase. (" +
-        ((laporanRes.error || checklistRes.error).message || "unknown error") +
+      "Gagal memuat data draft. Pastikan sql/add_draft_workflow.sql dan sql/add_production_checklist.sql sudah dijalankan di Supabase. (" +
+        ((laporanRes.error || checklistRes.error || productionRes.error).message || "unknown error") +
         ")"
     );
     draftCount.textContent = "";
@@ -102,6 +125,7 @@ async function loadDrafts() {
   const items = [
     ...(laporanRes.data || []).map((row) => ({ tipe: "laporan", row })),
     ...(checklistRes.data || []).map((row) => ({ tipe: "pm_checklist", row })),
+    ...(productionRes.data || []).map((row) => ({ tipe: "production_checklist", row })),
   ].sort((a, b) => new Date(b.row.created_at) - new Date(a.row.created_at));
 
   draftCount.textContent = `${items.length} data ditemukan`;
@@ -116,7 +140,11 @@ function renderList(items) {
 
   draftList.innerHTML = "";
   for (const item of items) {
-    draftList.appendChild(item.tipe === "laporan" ? renderLaporanCard(item.row) : renderChecklistCard(item.row));
+    let cardEl;
+    if (item.tipe === "laporan") cardEl = renderLaporanCard(item.row);
+    else if (item.tipe === "production_checklist") cardEl = renderProductionCard(item.row);
+    else cardEl = renderChecklistCard(item.row);
+    draftList.appendChild(cardEl);
   }
 }
 
@@ -136,9 +164,15 @@ function reviewFooter(row) {
 }
 
 function actionButtons(tipe, row) {
-  if (row.review_status !== "draft") return "";
+  const detailBtn = `<button type="button" class="btn-link-btn pm-detail-btn" data-tipe="${tipe}" data-id="${row.id}">Lihat detail</button>`;
+
+  if (row.review_status !== "draft") {
+    return `<div class="draft-actions">${detailBtn}</div>`;
+  }
+
   return `
     <div class="draft-actions">
+      ${detailBtn}
       <button type="button" class="btn-approve" data-tipe="${tipe}" data-id="${row.id}">Approve</button>
       <button type="button" class="btn-reject" data-tipe="${tipe}" data-id="${row.id}" data-label="${escapeHtml(
     tipe === "laporan" ? row.equipment?.nama || "Laporan" : row.checklist_title || "Checklist"
@@ -165,7 +199,7 @@ function renderLaporanCard(row) {
     ${reviewFooter(row)}
     ${actionButtons("laporan", row)}
   `;
-  bindActions(card);
+  bindActions(card, row);
   return card;
 }
 
@@ -185,11 +219,34 @@ function renderChecklistCard(row) {
     ${reviewFooter(row)}
     ${actionButtons("pm_checklist", row)}
   `;
-  bindActions(card);
+  bindActions(card, row);
   return card;
 }
 
-function bindActions(card) {
+function renderProductionCard(row) {
+  const card = document.createElement("div");
+  card.className = "draft-card";
+  card.innerHTML = `
+    <div class="draft-card-head">
+      <span class="draft-type-badge draft-type-badge--checklist">Production</span>
+      ${reviewBadge(row)}
+    </div>
+    <p class="draft-card-title">${escapeHtml(row.checklist_title || "-")}</p>
+    <p class="draft-card-meta">${escapeHtml(row.equipment || "")} · ${escapeHtml(row.area || "")} · ${escapeHtml(
+    row.periode_label || ""
+  )} · ${row.tanggal_inspeksi || ""}</p>
+    <p class="draft-card-pic">Diperiksa OPR: ${escapeHtml(row.checked_by_opr || "-")}</p>
+    ${reviewFooter(row)}
+    ${actionButtons("production_checklist", row)}
+  `;
+  bindActions(card, row);
+  return card;
+}
+
+function bindActions(card, row) {
+  card.querySelectorAll(".pm-detail-btn").forEach((btn) => {
+    btn.addEventListener("click", () => openDetail(btn.dataset.tipe, row));
+  });
   card.querySelectorAll(".btn-approve").forEach((btn) => {
     btn.addEventListener("click", () => approveItem(btn.dataset.tipe, btn.dataset.id));
   });
@@ -201,6 +258,7 @@ function bindActions(card) {
 const TABLE_BY_TIPE = {
   laporan: "laporan",
   pm_checklist: "pm_checklist_submission",
+  production_checklist: "production_checklist_submission",
 };
 
 async function approveItem(tipe, id) {
@@ -267,6 +325,154 @@ rejectConfirm.addEventListener("click", async () => {
 
   closeRejectModal();
   loadDrafts();
+});
+
+// ---------- MODAL LIHAT DETAIL ----------
+function openDetail(tipe, row) {
+  if (tipe === "laporan") openDetailLaporan(row);
+  else openDetailChecklist(tipe, row);
+}
+
+function openDetailLaporan(row) {
+  const jam = row.jam ? row.jam.slice(0, 5) : "";
+  detailTitle.textContent = row.equipment?.nama || row.mesin?.nama || "Laporan Mesin";
+  detailSub.textContent = `${formatTanggal(row.tanggal)} ${jam} · ${row.shift || ""}`;
+
+  detailMeta.innerHTML = `
+    <div><span>Area</span><p>${escapeHtml(row.area?.nama || "—")}</p></div>
+    <div><span>Mesin</span><p>${escapeHtml(row.mesin?.nama || "—")}</p></div>
+    <div><span>Equipment</span><p>${escapeHtml(row.equipment?.nama || "—")}</p></div>
+    <div><span>Status mesin</span><p>${escapeHtml(row.status || "—")}</p></div>
+    <div><span>PIC</span><p>${escapeHtml(row.pic || "—")}</p></div>
+    <div><span>Review</span><p>${reviewBadge(row)}</p></div>
+  `;
+
+  detailBody.innerHTML = `
+    <p class="pm-detail-uraian">${escapeHtml(row.deskripsi || "Tidak ada deskripsi.")}</p>
+  `;
+
+  detailCatatan.innerHTML = "";
+
+  renderDetailFoto(row.laporan_foto);
+
+  detailOverlay.hidden = false;
+}
+
+function openDetailChecklist(tipe, row) {
+  const fotoField = tipe === "production_checklist" ? row.production_checklist_foto : row.pm_checklist_foto;
+
+  detailTitle.textContent = row.checklist_title ?? "";
+  detailSub.textContent = `${row.periode_label ?? ""} · ${formatTanggal(row.tanggal_inspeksi)}`;
+
+  detailMeta.innerHTML = `
+    <div><span>Equipment</span><p>${escapeHtml(row.equipment || "—")}</p></div>
+    <div><span>Area</span><p>${escapeHtml(row.area || "—")}</p></div>
+    <div><span>Bulan/Tahun</span><p>${escapeHtml(row.bulan_tahun || "—")}</p></div>
+    <div><span>Diperiksa OPR</span><p>${escapeHtml(row.checked_by_opr || "—")}</p></div>
+    <div><span>Diperiksa SPV</span><p>${escapeHtml(row.review_status !== "draft" ? row.reviewed_by || "—" : "—")}</p></div>
+    <div><span>Review</span><p>${reviewBadge(row)}</p></div>
+  `;
+
+  const items = row.items || [];
+  const isGrid = items.length > 0 && items[0].values !== undefined;
+
+  if (isGrid) {
+    const columns = Object.keys(items[0].values || {});
+    detailBody.innerHTML = `
+      <div class="table-wrap">
+        <table class="pm-detail-table">
+          <thead>
+            <tr>
+              <th>Uraian</th>
+              ${columns.map((c) => `<th>${escapeHtml(c)}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${items
+              .map(
+                (item) => `
+              <tr>
+                <td>
+                  <p class="pm-detail-uraian">${item.no ?? ""}. ${escapeHtml(item.uraian ?? "")}</p>
+                  ${item.standar ? `<p class="pm-detail-standar">Standar: ${escapeHtml(item.standar)}</p>` : ""}
+                </td>
+                ${columns.map((c) => `<td>${escapeHtml((item.values && item.values[c]) || "—")}</td>`).join("")}
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } else {
+    detailBody.innerHTML = `
+      <div class="table-wrap">
+        <table class="pm-detail-table">
+          <thead>
+            <tr>
+              <th>Uraian</th>
+              <th>Standar</th>
+              <th>Hasil</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items
+              .map(
+                (item) => `
+              <tr>
+                <td>${item.no ?? ""}. ${escapeHtml(item.uraian ?? "")}</td>
+                <td>${escapeHtml(item.standar || "—")}</td>
+                <td>${escapeHtml(item.hasil || "—")}</td>
+                <td>${escapeHtml(item.keterangan || "—")}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  detailCatatan.innerHTML = row.catatan
+    ? `<p><span>Catatan:</span> ${escapeHtml(row.catatan)}</p>`
+    : "";
+
+  renderDetailFoto(fotoField);
+
+  detailOverlay.hidden = false;
+}
+
+function renderDetailFoto(fotos) {
+  if (!fotos || fotos.length === 0) {
+    detailFoto.innerHTML = "";
+    return;
+  }
+  detailFoto.innerHTML = `
+    <p class="pm-detail-foto-label">Foto evidence (${fotos.length})</p>
+    <div class="pm-detail-foto-grid">
+      ${fotos
+        .map(
+          (f) => `
+        <a href="${f.foto_url}" target="_blank" rel="noopener">
+          <img src="${f.foto_url}" alt="Foto evidence" loading="lazy" />
+        </a>
+      `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function closeDetail() {
+  detailOverlay.hidden = true;
+}
+
+detailClose.addEventListener("click", closeDetail);
+detailOverlay.addEventListener("click", (e) => {
+  if (e.target === detailOverlay) closeDetail();
 });
 
 // ---------- TABS ----------

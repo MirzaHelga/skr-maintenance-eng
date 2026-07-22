@@ -91,21 +91,25 @@ async function loadStats() {
 
 // ---------- DRAFT MENUNGGU REVIEW ----------
 async function loadDraftCount() {
-  const [laporanRes, checklistRes] = await Promise.all([
+  const [laporanRes, checklistRes, productionRes] = await Promise.all([
     supabase.from("laporan").select("id", { count: "exact", head: true }).eq("review_status", "draft"),
     supabase
       .from("pm_checklist_submission")
       .select("id", { count: "exact", head: true })
       .eq("review_status", "draft"),
+    supabase
+      .from("production_checklist_submission")
+      .select("id", { count: "exact", head: true })
+      .eq("review_status", "draft"),
   ]);
 
-  if (laporanRes.error || checklistRes.error) {
-    console.error(laporanRes.error || checklistRes.error);
+  if (laporanRes.error || checklistRes.error || productionRes.error) {
+    console.error(laporanRes.error || checklistRes.error || productionRes.error);
     statDraft.textContent = "–";
     return;
   }
 
-  statDraft.textContent = String((laporanRes.count || 0) + (checklistRes.count || 0));
+  statDraft.textContent = String((laporanRes.count || 0) + (checklistRes.count || 0) + (productionRes.count || 0));
 }
 
 function renderDashDate() {
