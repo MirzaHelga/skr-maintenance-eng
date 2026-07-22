@@ -191,7 +191,7 @@ async function setupNotificationBell() {
       <div class="notif-list" id="notif-list">
         <p class="notif-empty">Memuat…</p>
       </div>
-      <a href="draft.html" class="notif-see-all">Lihat semua draft &rarr;</a>
+      <a href="draft.html" class="notif-see-all">Lihat semua draft</a>
     </div>
   `;
 
