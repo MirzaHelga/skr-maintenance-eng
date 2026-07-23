@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 import { kirimNotifikasiSpv } from "./notify.js";
+import { compressImage } from "./image-compress.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -133,11 +134,12 @@ loadMasterData();
 // foto mana yang mau dibuang tanpa salah index kalau urutan berubah.
 let photoIdCounter = 0;
 
-function addFiles(fileList) {
-  for (const file of fileList) {
-    selectedFiles.push({ id: ++photoIdCounter, file });
+async function addFiles(fileList) {
+  for (const file of Array.from(fileList)) {
+    const compressed = await compressImage(file);
+    selectedFiles.push({ id: ++photoIdCounter, file: compressed });
+    renderPhotoGrid();
   }
-  renderPhotoGrid();
 }
 
 function removeFile(id) {

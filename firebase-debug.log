@@ -1,0 +1,82 @@
+[debug] [2026-07-23T02:13:33.578Z] ----------------------------------------------------------------------
+[debug] [2026-07-23T02:13:33.580Z] Command:       C:\Program Files\nodejs\node.exe D:\Users\mirza.h.prabatanadi\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init hosting
+[debug] [2026-07-23T02:13:33.580Z] CLI Version:   15.24.0
+[debug] [2026-07-23T02:13:33.580Z] Platform:      win32
+[debug] [2026-07-23T02:13:33.580Z] Node Version:  v24.18.0
+[debug] [2026-07-23T02:13:33.580Z] Detected Agent: unknown
+[debug] [2026-07-23T02:13:33.580Z] Time:          Thu Jul 23 2026 09:13:33 GMT+0700 (Indochina Time)
+[debug] [2026-07-23T02:13:33.581Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-23T02:13:33.589Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  D:\Aplikasi\skr-maintenance
+
+Before we get started, keep in mind:
+
+  * You are currently outside your home directory
+
+[debug] [2026-07-23T02:13:49.418Z] *** [apiv2] error from fetch(https://firebase-public.firebaseio.com/cli.json, {"headers":{},"method":"GET"}): ConnectTimeoutError: Connect Timeout Error (attempted addresses: 34.120.206.254:443, 34.120.160.131:443, 35.201.97.85:443, 35.190.39.113:443, timeout: 10000ms)
+[warn] !  Unable to fetch the CLI MOTD and remote config. This is not a fatal error, but may indicate an issue with your network connection. 
+[debug] [2026-07-23T02:13:49.418Z] Failed to fetch MOTD FirebaseError: Failed to make request to https://firebase-public.firebaseio.com/cli.json
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-07-23T02:14:04.077Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-23T02:14:09.096Z] Error: Timed out.
+    at Timeout._onTimeout (D:\Users\mirza.h.prabatanadi\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:296:49)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-07-23T02:14:20.819Z] ----------------------------------------------------------------------
+[debug] [2026-07-23T02:14:20.820Z] Command:       C:\Program Files\nodejs\node.exe D:\Users\mirza.h.prabatanadi\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init hosting
+[debug] [2026-07-23T02:14:20.821Z] CLI Version:   15.24.0
+[debug] [2026-07-23T02:14:20.821Z] Platform:      win32
+[debug] [2026-07-23T02:14:20.821Z] Node Version:  v24.18.0
+[debug] [2026-07-23T02:14:20.821Z] Detected Agent: unknown
+[debug] [2026-07-23T02:14:20.821Z] Time:          Thu Jul 23 2026 09:14:20 GMT+0700 (Indochina Time)
+[debug] [2026-07-23T02:14:20.821Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-23T02:14:20.829Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  D:\Aplikasi\skr-maintenance
+
+Before we get started, keep in mind:
+
+  * You are currently outside your home directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-07-23T02:14:31.837Z] *** [apiv2] error from fetch(https://firebase-public.firebaseio.com/cli.json, {"headers":{},"method":"GET"}): ConnectTimeoutError: Connect Timeout Error (attempted addresses: 34.120.206.254:443, 34.120.160.131:443, 35.201.97.85:443, 35.190.39.113:443, timeout: 10000ms)
+[warn] !  Unable to fetch the CLI MOTD and remote config. This is not a fatal error, but may indicate an issue with your network connection. 
+[debug] [2026-07-23T02:14:31.956Z] Failed to fetch MOTD FirebaseError: Failed to make request to https://firebase-public.firebaseio.com/cli.json
+[debug] [2026-07-23T02:14:50.440Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-23T02:14:55.472Z] Error: Timed out.
+    at Timeout._onTimeout (D:\Users\mirza.h.prabatanadi\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:296:49)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+[error] 
+[error] Error: An unexpected error has occurred.
