@@ -186,6 +186,7 @@ untuk layar kecil.
 | Rekap Checklist PM (`rekap-pm.html`) | – | ✅ | ✅ |
 | Draft — review & approve/reject (`draft.html`) | – | ✅ | ✅ |
 | Kelola User (`kelola-user.html`) | – | – | ✅ |
+| Bersihkan Data (`kelola-user.html`) | – | – | ✅ |
 
 Setelah login, sidebar otomatis cuma menampilkan menu yang jadi hak
 peran itu (diatur `js/auth.js`, lewat atribut `data-allow` di tiap
