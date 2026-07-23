@@ -285,6 +285,10 @@ html, body {
   .form-card { padding: 32px; }
 }
 
+/* Dipakai di halaman gabungan (Report / Utility / Production) supaya
+   form input tetap sempit & enak dibaca walau wrapper-nya wrap-wide. */
+.form-card-narrow { max-width: 720px; margin: 0 auto; }
+
 .field-row-3 {
   display: grid;
   grid-template-columns: 1fr;

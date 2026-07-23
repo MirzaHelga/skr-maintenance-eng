@@ -126,9 +126,9 @@ function renderDashDate() {
 async function loadRecent() {
   const { data, error } = await supabase
     .from("laporan")
-    .select("tanggal, jam, shift, status, equipment:equipment_id(nama), mesin:mesin_id(nama)")
+    .select("tanggal, jam_mulai, jam_selesai, shift, status, equipment:equipment_id(nama), mesin:mesin_id(nama)")
     .order("tanggal", { ascending: false })
-    .order("jam", { ascending: false })
+    .order("jam_mulai", { ascending: false })
     .limit(7);
 
   if (error) {
@@ -148,7 +148,9 @@ async function loadRecent() {
     const item = document.createElement("div");
     item.className = "dash-recent-item";
     const statusClass = STATUS_CLASS[row.status] || "";
-    const jam = row.jam ? row.jam.slice(0, 5) : "";
+    const jamMulai = row.jam_mulai ? row.jam_mulai.slice(0, 5) : "";
+    const jamSelesai = row.jam_selesai ? row.jam_selesai.slice(0, 5) : "";
+    const jam = jamMulai || jamSelesai ? `${jamMulai}–${jamSelesai}` : "";
     item.innerHTML = `
       <div class="dash-recent-main">
         <p class="dash-recent-equipment">${escapeHtml(row.equipment?.nama ?? row.mesin?.nama ?? "-")}</p>

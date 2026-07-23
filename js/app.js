@@ -13,7 +13,9 @@ const selectArea = document.getElementById("select-area");
 const selectMesin = document.getElementById("select-mesin");
 const selectEquipment = document.getElementById("select-equipment");
 const inputTanggal = document.getElementById("input-tanggal");
-const inputJam = document.getElementById("input-jam");
+const inputJamMulai = document.getElementById("input-jam-mulai");
+const inputJamSelesai = document.getElementById("input-jam-selesai");
+const errJam = document.getElementById("err-jam");
 const selectShift = document.getElementById("select-shift");
 const inputDeskripsi = document.getElementById("input-deskripsi");
 const selectPic = document.getElementById("select-pic");
@@ -48,7 +50,9 @@ function setDefaultDateTime() {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, "0");
   inputTanggal.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-  inputJam.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const jamSekarang = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  inputJamMulai.value = jamSekarang;
+  inputJamSelesai.value = jamSekarang;
 }
 setDefaultDateTime();
 
@@ -217,6 +221,7 @@ async function uploadPhoto(file) {
 
 function validateForm() {
   const missing = [];
+  errJam.hidden = true;
 
   if (!selectedStatus) {
     errStatus.hidden = false;
@@ -226,10 +231,20 @@ function validateForm() {
   if (!selectMesin.value) missing.push("Mesin");
   if (!selectEquipment.value) missing.push("Equipment");
   if (!inputTanggal.value) missing.push("Tanggal");
-  if (!inputJam.value) missing.push("Jam");
+  if (!inputJamMulai.value) missing.push("Jam Mulai");
+  if (!inputJamSelesai.value) missing.push("Jam Selesai");
   if (!selectShift.value) missing.push("Shift");
   if (!inputDeskripsi.value.trim()) missing.push("Deskripsi kejadian");
   if (!selectPic.value) missing.push("PIC");
+
+  if (
+    inputJamMulai.value &&
+    inputJamSelesai.value &&
+    inputJamSelesai.value < inputJamMulai.value
+  ) {
+    errJam.hidden = false;
+    missing.push("Jam Selesai (tidak boleh sebelum Jam Mulai)");
+  }
 
   return missing;
 }
@@ -255,7 +270,8 @@ form.addEventListener("submit", async (e) => {
         mesin_id: selectMesin.value,
         equipment_id: selectEquipment.value,
         tanggal: inputTanggal.value,
-        jam: inputJam.value,
+        jam_mulai: inputJamMulai.value,
+        jam_selesai: inputJamSelesai.value,
         shift: selectShift.value,
         status: selectedStatus,
         deskripsi: inputDeskripsi.value.trim(),
@@ -310,6 +326,7 @@ btnNewReport.addEventListener("click", () => {
   selectMesin.disabled = true;
   fillSelect(selectEquipment, [], "Pilih mesin dulu");
   selectEquipment.disabled = true;
+  errJam.hidden = true;
   setDefaultDateTime();
   successOverlay.hidden = true;
 });

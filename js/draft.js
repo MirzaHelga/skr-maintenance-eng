@@ -57,6 +57,13 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function formatJamRange(jamMulai, jamSelesai) {
+  const mulai = jamMulai ? jamMulai.slice(0, 5) : "";
+  const selesai = jamSelesai ? jamSelesai.slice(0, 5) : "";
+  if (!mulai && !selesai) return "";
+  return `${mulai}–${selesai}`;
+}
+
 function formatWaktu(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -84,7 +91,7 @@ async function loadDrafts() {
   let laporanQuery = supabase
     .from("laporan")
     .select(
-      "id, tanggal, jam, shift, status, deskripsi, pic, review_status, reviewed_by, reviewed_at, reject_reason, created_at, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)"
+      "id, tanggal, jam_mulai, jam_selesai, shift, status, deskripsi, pic, review_status, reviewed_by, reviewed_at, reject_reason, created_at, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)"
     )
     .order("created_at", { ascending: false });
 
@@ -185,7 +192,7 @@ function renderLaporanCard(row) {
   const card = document.createElement("div");
   card.className = "draft-card";
   const statusClass = STATUS_MESIN_CLASS[row.status] || "";
-  const jam = row.jam ? row.jam.slice(0, 5) : "";
+  const jam = formatJamRange(row.jam_mulai, row.jam_selesai);
   card.innerHTML = `
     <div class="draft-card-head">
       <span class="draft-type-badge draft-type-badge--laporan">Laporan Mesin</span>
@@ -334,7 +341,7 @@ function openDetail(tipe, row) {
 }
 
 function openDetailLaporan(row) {
-  const jam = row.jam ? row.jam.slice(0, 5) : "";
+  const jam = formatJamRange(row.jam_mulai, row.jam_selesai);
   detailTitle.textContent = row.equipment?.nama || row.mesin?.nama || "Laporan Mesin";
   detailSub.textContent = `${formatTanggal(row.tanggal)} ${jam} · ${row.shift || ""}`;
 

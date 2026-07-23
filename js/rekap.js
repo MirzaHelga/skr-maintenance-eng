@@ -70,13 +70,13 @@ async function loadLaporan() {
   clearError();
   btnExport.disabled = true;
   rekapCount.textContent = "Memuat data…";
-  rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Memuat data…</td></tr>`;
+  rekapTbody.innerHTML = `<tr><td colspan="12" class="table-empty">Memuat data…</td></tr>`;
 
   let query = supabase
     .from("laporan")
-    .select("tanggal, jam, shift, status, deskripsi, pic, review_status, reviewed_by, reject_reason, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)")
+    .select("tanggal, jam_mulai, jam_selesai, shift, status, deskripsi, pic, review_status, reviewed_by, reject_reason, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)")
     .order("tanggal", { ascending: false })
-    .order("jam", { ascending: false });
+    .order("jam_mulai", { ascending: false });
 
   if (fTanggalDari.value) query = query.gte("tanggal", fTanggalDari.value);
   if (fTanggalSampai.value) query = query.lte("tanggal", fTanggalSampai.value);
@@ -105,7 +105,7 @@ async function loadLaporan() {
 
 function renderTable(rows) {
   if (rows.length === 0) {
-    rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Tidak ada laporan untuk filter ini.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="12" class="table-empty">Tidak ada laporan untuk filter ini.</td></tr>`;
     return;
   }
 
@@ -115,7 +115,8 @@ function renderTable(rows) {
     const statusClass = STATUS_CLASS[row.status] || "";
     tr.innerHTML = `
       <td>${formatTanggal(row.tanggal)}</td>
-      <td>${row.jam ? row.jam.slice(0, 5) : ""}</td>
+      <td>${row.jam_mulai ? row.jam_mulai.slice(0, 5) : ""}</td>
+      <td>${row.jam_selesai ? row.jam_selesai.slice(0, 5) : ""}</td>
       <td>${row.shift ?? ""}</td>
       <td>${row.area?.nama ?? ""}</td>
       <td>${row.mesin?.nama ?? ""}</td>
@@ -175,7 +176,8 @@ btnExport.addEventListener("click", () => {
 
   const exportData = currentRows.map((row) => ({
     Tanggal: formatTanggal(row.tanggal),
-    Jam: row.jam ? row.jam.slice(0, 5) : "",
+    "Jam Mulai": row.jam_mulai ? row.jam_mulai.slice(0, 5) : "",
+    "Jam Selesai": row.jam_selesai ? row.jam_selesai.slice(0, 5) : "",
     Shift: row.shift ?? "",
     Area: row.area?.nama ?? "",
     Mesin: row.mesin?.nama ?? "",
@@ -191,7 +193,8 @@ btnExport.addEventListener("click", () => {
   const worksheet = XLSX.utils.json_to_sheet(exportData);
   worksheet["!cols"] = [
     { wch: 11 }, // Tanggal
-    { wch: 7 },  // Jam
+    { wch: 9 },  // Jam Mulai
+    { wch: 9 },  // Jam Selesai
     { wch: 9 },  // Shift
     { wch: 16 }, // Area
     { wch: 18 }, // Mesin
