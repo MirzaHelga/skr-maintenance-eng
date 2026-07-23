@@ -74,7 +74,7 @@ async function loadLaporan() {
 
   let query = supabase
     .from("laporan")
-    .select("tanggal, jam_mulai, jam_selesai, shift, status, deskripsi, pic, review_status, reviewed_by, reject_reason, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)")
+    .select("tanggal, jam_mulai, jam_selesai, shift, status, deskripsi, part_diganti, pic, review_status, reviewed_by, reject_reason, area:area_id(nama), mesin:mesin_id(nama), equipment:equipment_id(nama), laporan_foto(foto_url)")
     .order("tanggal", { ascending: false })
     .order("jam_mulai", { ascending: false });
 
@@ -93,7 +93,7 @@ async function loadLaporan() {
         ")"
     );
     rekapCount.textContent = "";
-    rekapTbody.innerHTML = `<tr><td colspan="11" class="table-empty">Gagal memuat data.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="13" class="table-empty">Gagal memuat data.</td></tr>`;
     return;
   }
 
@@ -105,7 +105,7 @@ async function loadLaporan() {
 
 function renderTable(rows) {
   if (rows.length === 0) {
-    rekapTbody.innerHTML = `<tr><td colspan="12" class="table-empty">Tidak ada laporan untuk filter ini.</td></tr>`;
+    rekapTbody.innerHTML = `<tr><td colspan="13" class="table-empty">Tidak ada laporan untuk filter ini.</td></tr>`;
     return;
   }
 
@@ -123,6 +123,7 @@ function renderTable(rows) {
       <td>${row.equipment?.nama ?? ""}</td>
       <td><span class="status-badge status-${statusClass}">${row.status ?? ""}</span></td>
       <td class="col-deskripsi">${escapeHtml(row.deskripsi ?? "")}</td>
+      <td class="col-deskripsi">${escapeHtml(row.part_diganti ?? "")}</td>
       <td>${row.pic ?? ""}</td>
       <td>${renderFotoLinks(row.laporan_foto)}</td>
       <td>${renderReviewBadge(row)}</td>
@@ -184,6 +185,7 @@ btnExport.addEventListener("click", () => {
     Equipment: row.equipment?.nama ?? "",
     Status: row.status ?? "",
     Deskripsi: row.deskripsi ?? "",
+    "Part yang di ganti": row.part_diganti ?? "",
     PIC: row.pic ?? "",
     "Link Foto": (row.laporan_foto || []).map((f) => f.foto_url).join("; "),
     Review: REVIEW_LABEL[row.review_status] || row.review_status || "",
@@ -201,6 +203,7 @@ btnExport.addEventListener("click", () => {
     { wch: 20 }, // Equipment
     { wch: 12 }, // Status
     { wch: 45 }, // Deskripsi
+    { wch: 30 }, // Part yang di ganti
     { wch: 16 }, // PIC
     { wch: 30 }, // Link Foto
     { wch: 16 }, // Review
