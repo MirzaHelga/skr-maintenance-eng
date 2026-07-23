@@ -34,6 +34,7 @@ production-checklist.html      form isian checklist Production (semua role)
 rekap-production.html          rekap Production + detail + export Excel (SPV & superadmin)
 draft.html                     tinjau & approve/reject draft (SPV & superadmin) — laporan, Checklist PM, & Production
 kelola-user.html               kelola akun: tambah/edit/reset password/nonaktifkan (khusus superadmin)
+bersihkan-data.html            hapus permanen laporan/checklist lama yang approved/rejected, sekalian foto di storage (khusus superadmin)
 
 css/
   style.css                    tampilan semua halaman
@@ -44,6 +45,9 @@ js/
                                 sidebar/topbar sesuai peran, lonceng notifikasi
   login.js                     logic halaman login (cek akun ke database)
   kelola-user.js                logic halaman Kelola User (khusus superadmin)
+  bersihkan-data.js            logic halaman Bersihkan Data (khusus superadmin)
+  image-compress.js            kompres foto (resize + re-encode JPEG) di browser sebelum upload,
+                                dipakai bareng oleh app.js/checklist.js/production-checklist.js
   app.js                       logic form Laporan Mesin + koneksi Supabase
   checklist.js                 logic form Checklist PM
   checklist-data.js            daftar checklist per equipment/periode (data statis)
@@ -73,6 +77,8 @@ sql/                           jalankan urut sesuai nomor di bagian setup di baw
   add_draft_workflow.sql
   add_user_accounts.sql
   add_pm_checklist_foto.sql
+  add_production_checklist.sql
+  add_delete_policy.sql
 
 data/
   master_data.json             data mentah hasil olahan Excel (referensi/backup)
@@ -123,6 +129,11 @@ dari file sebelumnya:
    `production_checklist` di tabel `notifikasi`. Alurnya sama persis
    dengan Checklist PM (draft → review SPV → rekap). Datanya ada di
    `js/production-data.js`.
+10. `sql/add_delete_policy.sql` — izin hapus (delete) dari browser untuk
+    tabel `laporan`, `laporan_foto`, `pm_checklist_submission`,
+    `pm_checklist_foto`, `production_checklist_submission`, dan
+    `production_checklist_foto`. Dibutuhkan supaya halaman **Bersihkan
+    Data** (superadmin) bisa menghapus permanen data lama.
 
 ### 3. Ambil API key
 **Project Settings → API**. Salin:
@@ -186,7 +197,7 @@ untuk layar kecil.
 | Rekap Checklist PM (`rekap-pm.html`) | – | ✅ | ✅ |
 | Draft — review & approve/reject (`draft.html`) | – | ✅ | ✅ |
 | Kelola User (`kelola-user.html`) | – | – | ✅ |
-| Bersihkan Data (`kelola-user.html`) | – | – | ✅ |
+| Bersihkan Data (`bersihkan-data.html`) | – | – | ✅ |
 
 Setelah login, sidebar otomatis cuma menampilkan menu yang jadi hak
 peran itu (diatur `js/auth.js`, lewat atribut `data-allow` di tiap
@@ -210,8 +221,12 @@ lewat `login.html`.
   `review_status = 'draft'` (default di database), lalu `notify.js`
   membuat 1 baris di tabel `notifikasi` supaya muncul di lonceng SPV.
   Untuk laporan Mesin, foto (kamera dan/atau galeri, bisa lebih dari
-  satu) diupload ke storage bucket `foto-laporan`, URL publiknya
-  disimpan di tabel `laporan_foto`.
+  satu) **dikompres dulu di browser** (`image-compress.js`: resize ke
+  maks 1600px sisi terpanjang + re-encode ke JPEG quality 0.75, dengan
+  fallback ke file asli kalau proses gagal atau hasil kompresnya malah
+  lebih besar) sebelum diupload ke storage bucket `foto-laporan`, URL
+  publiknya disimpan di tabel `laporan_foto`. Checklist PM & Production
+  pakai pola kompres yang sama.
 - SPV/superadmin membuka `draft.html`, melihat semua draft (tab
   Menunggu review/Disetujui/Ditolak/Semua), lalu **Approve** (langsung)
   atau **Reject** (wajib isi alasan). Ini meng-update `review_status`,
@@ -230,6 +245,16 @@ lewat `login.html`.
   tidak bisa menonaktifkan akun yang sedang dipakainya sendiri, atau
   mengubah role akun sendiri jadi bukan superadmin, supaya tidak
   kekunci dari halaman ini.
+- **Bersihkan Data** (superadmin): buat menghapus permanen laporan/PM
+  checklist/production checklist lama yang sudah **Approved** atau
+  **Rejected** (draft sengaja tidak bisa dihapus dari sini, karena masih
+  perlu direview). Superadmin memilih jenis data, status, dan tanggal
+  batas "direview sebelum", lalu pilih baris mana saja yang mau dihapus.
+  Saat konfirmasi, urutannya: foto-foto terkait dihapus dulu dari storage
+  bucket (`foto-laporan`/`foto-checklist-pm`/`foto-production-checklist`),
+  baru row-nya di database (row di tabel foto ikut terhapus otomatis
+  lewat `on delete cascade`) — supaya tidak ada file foto yang jadi
+  sampah tanpa row database yang menunjuknya.
 
 ## Catatan keamanan
 
@@ -247,6 +272,10 @@ di sisi tampilan (role gate di `js/auth.js`), bukan di database. Artinya:
   kuat (idealnya pakai bcrypt/argon2 dengan salt, yang butuh proses di
   server, bukan di browser).
 - Belum ada validasi "minimal 1 superadmin aktif" di level database.
+- Halaman **Bersihkan Data** menghapus **permanen** (tidak ada
+  recycle bin/undo) — pastikan hanya superadmin yang dipercaya yang
+  pegang akunnya, dan sebaiknya backup/export dulu data yang mau
+  dihapus kalau masih ragu.
 
 Kalau nanti butuh proteksi yang lebih kuat (akun beneran lewat Supabase
 Auth + RLS berbasis user, hashing password yang lebih kuat di server),
