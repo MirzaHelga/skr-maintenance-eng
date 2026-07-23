@@ -2219,3 +2219,48 @@ thead .checklist-grid-uraian-head {
 }
 
 .dash-stat-draft .dash-stat-value { color: #8A5A0F; }
+
+/* ---------- BERSIHKAN DATA (superadmin) ---------- */
+
+.bersihkan-warning {
+  background: color-mix(in srgb, var(--breakdown) 10%, white);
+  border: 1.5px solid color-mix(in srgb, var(--breakdown) 35%, white);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.btn-hapus {
+  background: var(--breakdown);
+}
+
+.btn-hapus:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.table-sub {
+  font-size: 12px;
+  color: var(--ink-soft, #6b7280);
+}
+
+.badge-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-approved {
+  background: color-mix(in srgb, var(--running) 15%, white);
+  color: var(--running);
+}
+
+.badge-rejected {
+  background: color-mix(in srgb, var(--breakdown) 15%, white);
+  color: var(--breakdown);
+}

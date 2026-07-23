@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Rekap Laporan Mesin</title>
+<title>Bersihkan Data — Maintenance App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body data-page="rekap" data-allow="spv,superadmin">
+<body data-page="bersihkan-data" data-allow="superadmin">
 
 <div class="app-shell">
 
@@ -26,14 +26,14 @@
     <div class="sidebar-nav">
       <a href="dashboard.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
       <a href="laporan.html" class="sidebar-link" data-role="all">Input laporan</a>
-      <a href="rekap.html" class="sidebar-link active" data-role="spv,superadmin">Rekap laporan</a>
+      <a href="rekap.html" class="sidebar-link" data-role="spv,superadmin">Rekap laporan</a>
       <a href="pm.html" class="sidebar-link" data-role="all">Checklist PM</a>
       <a href="rekap-pm.html" class="sidebar-link" data-role="spv,superadmin">Rekap Checklist PM</a>
       <a href="production.html" class="sidebar-link" data-role="all">Production</a>
       <a href="rekap-production.html" class="sidebar-link" data-role="spv,superadmin">Rekap Production</a>
       <a href="draft.html" class="sidebar-link" data-role="spv,superadmin">Draft</a>
       <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
-      <a href="bersihkan-data.html" class="sidebar-link" data-role="superadmin">Bersihkan Data</a>
+      <a href="bersihkan-data.html" class="sidebar-link active" data-role="superadmin">Bersihkan Data</a>
     </div>
   </aside>
 
@@ -45,8 +45,8 @@
           <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
         </div>
         <div class="topbar-text">
-          <span class="topbar-title">Rekap Laporan</span>
-          <span class="topbar-sub">Riwayat laporan mesin &amp; export Excel</span>
+          <span class="topbar-title">Bersihkan Data</span>
+          <span class="topbar-sub">Hapus permanen laporan/checklist lama yang sudah approved</span>
         </div>
         <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
           <span></span><span></span><span></span>
@@ -54,68 +54,63 @@
       </div>
     </div>
 
-    <!-- ISI REKAP (halaman ini sudah dijaga role SPV lewat auth.js) -->
-    <main class="wrap wrap-wide" id="rekap-wrap">
+    <main class="wrap wrap-wide">
+
+      <p class="bersihkan-warning">
+        ⚠️ Data yang dihapus di sini <strong>hilang permanen</strong> — termasuk foto-fotonya di storage.
+        Tidak bisa dikembalikan. Data berstatus <strong>Draft</strong> sengaja tidak bisa dihapus lewat halaman ini
+        (masih perlu direview SPV).
+      </p>
 
       <section class="filter-card">
         <div class="filter-row">
           <div class="filter-field">
-            <label class="field-label" for="f-tanggal-dari">Dari tanggal</label>
-            <input type="date" id="f-tanggal-dari" />
-          </div>
-          <div class="filter-field">
-            <label class="field-label" for="f-tanggal-sampai">Sampai tanggal</label>
-            <input type="date" id="f-tanggal-sampai" />
-          </div>
-          <div class="filter-field">
-            <label class="field-label" for="f-area">Area</label>
-            <select id="f-area">
-              <option value="">Semua area</option>
+            <label class="field-label" for="f-jenis">Jenis data</label>
+            <select id="f-jenis">
+              <option value="laporan">Laporan</option>
+              <option value="pm">PM Checklist</option>
+              <option value="production">Production Checklist</option>
             </select>
           </div>
           <div class="filter-field">
             <label class="field-label" for="f-status">Status</label>
             <select id="f-status">
-              <option value="">Semua status</option>
-              <option value="Running">Running</option>
-              <option value="Standby">Standby</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Breakdown">Breakdown</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="approved,rejected">Approved &amp; Rejected</option>
             </select>
+          </div>
+          <div class="filter-field">
+            <label class="field-label" for="f-sebelum">Direview sebelum tanggal</label>
+            <input type="date" id="f-sebelum" />
           </div>
         </div>
         <div class="filter-actions">
-          <button type="button" id="btn-filter" class="btn-secondary btn-inline">Terapkan filter</button>
-          <button type="button" id="btn-reset" class="btn-link-btn">Reset</button>
+          <button type="button" id="btn-cari" class="btn-secondary btn-inline">Cari data</button>
         </div>
       </section>
 
       <div class="rekap-toolbar">
-        <p class="rekap-count" id="rekap-count">Memuat data…</p>
-        <button type="button" id="btn-export" class="btn-export" disabled>⬇ Export ke Excel</button>
+        <p class="rekap-count" id="hasil-count">Pilih jenis data &amp; tanggal, lalu klik "Cari data".</p>
+        <button type="button" id="btn-hapus-terpilih" class="btn-export btn-hapus" disabled>Hapus data terpilih</button>
       </div>
 
-      <p class="form-error" id="rekap-error" hidden></p>
+      <p class="form-error" id="hasil-error" hidden></p>
 
       <div class="table-wrap">
-        <table id="rekap-table">
+        <table id="hasil-table">
           <thead>
             <tr>
+              <th><input type="checkbox" id="chk-all" /></th>
               <th>Tanggal</th>
-              <th>Jam</th>
-              <th>Shift</th>
-              <th>Area</th>
-              <th>Mesin</th>
-              <th>Equipment</th>
+              <th>Detail</th>
               <th>Status</th>
-              <th>Deskripsi</th>
-              <th>PIC</th>
-              <th>Foto</th>
-              <th>Review</th>
+              <th>Direview oleh</th>
+              <th>Jumlah foto</th>
             </tr>
           </thead>
-          <tbody id="rekap-tbody">
-            <tr><td colspan="11" class="table-empty">Memuat data…</td></tr>
+          <tbody id="hasil-tbody">
+            <tr><td colspan="6" class="table-empty">Belum ada data dicari.</td></tr>
           </tbody>
         </table>
       </div>
@@ -128,8 +123,19 @@
 
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
+<!-- MODAL KONFIRMASI HAPUS -->
+<div class="pm-detail-overlay" id="confirm-overlay" hidden>
+  <div class="pm-detail-card reject-modal-card">
+    <button type="button" class="pm-detail-close" id="confirm-close" aria-label="Tutup">&times;</button>
+    <p class="pm-detail-title">Hapus permanen?</p>
+    <p class="pm-detail-sub" id="confirm-sub"></p>
+    <p class="field-error" id="confirm-error" hidden></p>
+    <button type="button" id="confirm-hapus" class="btn-submit reject-confirm-btn">Ya, hapus permanen</button>
+  </div>
+</div>
+
 <script src="js/sidebar.js"></script>
 <script type="module" src="js/auth.js"></script>
-<script type="module" src="js/rekap.js"></script>
+<script type="module" src="js/bersihkan-data.js"></script>
 </body>
 </html>
