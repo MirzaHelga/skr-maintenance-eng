@@ -34,7 +34,7 @@ if (getAttempts() >= MAX_ATTEMPTS) {
 const REASON_MESSAGE = {
   not_found: "Username tidak ditemukan.",
   wrong_password: "Password salah.",
-  inactive: "Akun ini sudah dinonaktifkan. Hubungi Superadmin.",
+  inactive: "Akun ini sudah dinonaktifkan. Hubungi Atasan anda.",
   error: "Gagal menghubungi server. Coba lagi.",
 };
 
