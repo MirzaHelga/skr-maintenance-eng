@@ -2890,6 +2890,35 @@ export const PRODUCTION_CATEGORIES = [
   },
 ];
 
+// ============================================================
+// KLASIFIKASI ITEM: KUALITATIF (tombol OK/NO) vs BUTUH NILAI AKTUAL
+// ------------------------------------------------------------
+// Beda dengan js/checklist-data.js (Utility): kolom "standar" di
+// data Production ini isinya PIC (mis. "PIC: Mechanic"), bukan
+// standar hasil pengukuran — jadi klasifikasi di sini dibaca dari
+// teks "uraian"-nya, bukan dari "standar". Defaultnya tombol OK/NO
+// (task perawatan selesai/tidak); hanya item pengukuran resistansi/
+// hambatan coil ("...ukur ... dan catat") yang tetap jadi kolom teks
+// biar nilainya bisa dicatat. Kalau ada item lain yang salah kena
+// klasifikasi, tambahkan uraian-nya (persis sama) ke
+// URAIAN_TETAP_OKNO di bawah supaya dipaksa jadi tombol OK/NO.
+// ============================================================
+
+const URAIAN_TETAP_OKNO = new Set([
+  "Equipment — Air Filter: Replace filter elements if soiling is excessive or in the case of leaks, if the final resistance or time interval has ben reached :  1. Filter stage after 12 months  2. Filter stage after 24 months",
+]);
+
+// Kata yang menandakan item butuh pembacaan/pencatatan nilai aktual
+// (pengukuran resistansi/hambatan coil motor).
+const POLA_NILAI_AKTUAL = /resistance|resistansi|hambatan/i;
+
+export function butuhNilaiAktual(item) {
+  const uraian = (item && item.uraian ? item.uraian : "").trim();
+  if (!uraian) return false;
+  if (URAIAN_TETAP_OKNO.has(uraian)) return false;
+  return POLA_NILAI_AKTUAL.test(uraian);
+}
+
 export function findProductionChecklist(id) {
   for (const cat of PRODUCTION_CATEGORIES) {
     const found = cat.checklists.find((c) => c.id === id);

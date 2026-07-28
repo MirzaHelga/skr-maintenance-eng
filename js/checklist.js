@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
-import { findChecklist } from "./checklist-data.js";
+import { findChecklist, butuhNilaiAktual } from "./checklist-data.js";
 import { kirimNotifikasiSpv } from "./notify.js";
 import { compressImage } from "./image-compress.js";
 
@@ -162,6 +162,28 @@ async function uploadPhoto(file) {
   return data.publicUrl;
 }
 
+// Markup tombol OK/NO, dipakai untuk item yang standarnya kualitatif
+// (bukan angka aktual). "extraClass" untuk bedain versi grid (lebih kecil).
+function oknoMarkup(extraClass = "", dataAttrs = "") {
+  return `
+    <div class="checklist-okno ${extraClass}" role="group" ${dataAttrs}>
+      <button type="button" class="okno-btn okno-btn--ok" data-value="OK">OK</button>
+      <button type="button" class="okno-btn okno-btn--no" data-value="NO">NO</button>
+    </div>
+  `;
+}
+
+// Klik tombol OK/NO: toggle aktif di dalam grup yang sama, simpan nilai
+// terpilih di dataset.value grup-nya (dibaca lagi pas submit).
+itemsContainer.addEventListener("click", (e) => {
+  const btn = e.target.closest(".okno-btn");
+  if (!btn) return;
+  const group = btn.closest(".checklist-okno");
+  group.querySelectorAll(".okno-btn").forEach((b) => b.classList.remove("is-active"));
+  btn.classList.add("is-active");
+  group.dataset.value = btn.dataset.value;
+});
+
 const params = new URLSearchParams(window.location.search);
 const checklistId = params.get("id");
 const def = checklistId ? findChecklist(checklistId) : null;
@@ -224,8 +246,10 @@ function initChecklist(def) {
                 ${item.standar ? `<p class="checklist-grid-standar">Standar: ${item.standar}</p>` : ""}
               </td>
               ${gridColumns.map((col, colIdx) => `
-                <td class="checklist-grid-cell-wrap">
-                  <input type="text" class="checklist-grid-cell" data-idx="${idx}" data-col="${colIdx}" aria-label="${item.uraian} - ${col}" />
+                <td class="checklist-grid-cell-wrap${butuhNilaiAktual(item.standar) ? "" : " checklist-grid-cell-wrap--okno"}">
+                  ${butuhNilaiAktual(item.standar)
+                    ? `<input type="text" class="checklist-grid-cell" data-idx="${idx}" data-col="${colIdx}" aria-label="${item.uraian} - ${col}" />`
+                    : oknoMarkup("checklist-okno--grid", `data-idx="${idx}" data-col="${colIdx}"`)}
                 </td>
               `).join("")}
             </tr>
@@ -244,7 +268,9 @@ function initChecklist(def) {
           </div>
         </div>
         <div class="checklist-row-inputs">
-          <input type="text" class="checklist-hasil" data-idx="${idx}" placeholder="Hasil" />
+          ${butuhNilaiAktual(item.standar)
+            ? `<input type="text" class="checklist-hasil" data-idx="${idx}" placeholder="Hasil" />`
+            : oknoMarkup("", `data-idx="${idx}"`)}
           <input type="text" class="checklist-keterangan" data-idx="${idx}" placeholder="Keterangan" />
         </div>
       </div>
@@ -286,6 +312,12 @@ function initChecklist(def) {
         const colIdx = Number(cell.dataset.col);
         perItemValues[idx][gridColumns[colIdx]] = cell.value.trim();
       });
+      // Item kualitatif (tombol OK/NO) di grid: baca dataset.value grup-nya.
+      itemsContainer.querySelectorAll(".checklist-okno--grid").forEach((group) => {
+        const idx = Number(group.dataset.idx);
+        const colIdx = Number(group.dataset.col);
+        perItemValues[idx][gridColumns[colIdx]] = group.dataset.value || "";
+      });
       items = def.items.map((item, idx) => ({
         no: item.no,
         uraian: item.uraian,
@@ -293,15 +325,19 @@ function initChecklist(def) {
         values: perItemValues[idx],
       }));
     } else {
-      const hasilInputs = itemsContainer.querySelectorAll(".checklist-hasil");
       const keteranganInputs = itemsContainer.querySelectorAll(".checklist-keterangan");
-      items = def.items.map((item, idx) => ({
-        no: item.no,
-        uraian: item.uraian,
-        standar: item.standar,
-        hasil: hasilInputs[idx].value.trim(),
-        keterangan: keteranganInputs[idx].value.trim(),
-      }));
+      items = def.items.map((item, idx) => {
+        const hasilInput = itemsContainer.querySelector(`.checklist-hasil[data-idx="${idx}"]`);
+        const hasilGroup = itemsContainer.querySelector(`.checklist-row-inputs > .checklist-okno[data-idx="${idx}"]`);
+        const hasil = hasilInput ? hasilInput.value.trim() : (hasilGroup ? (hasilGroup.dataset.value || "") : "");
+        return {
+          no: item.no,
+          uraian: item.uraian,
+          standar: item.standar,
+          hasil,
+          keterangan: keteranganInputs[idx].value.trim(),
+        };
+      });
     }
 
     btnSubmit.disabled = true;
@@ -359,6 +395,12 @@ function initChecklist(def) {
     inputTanggal.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
     selectedFiles = [];
     renderPhotoGrid();
+    // form.reset() cuma reset input/select bawaan, tombol OK/NO custom
+    // harus dikosongkan manual.
+    itemsContainer.querySelectorAll(".checklist-okno").forEach((group) => {
+      delete group.dataset.value;
+      group.querySelectorAll(".okno-btn").forEach((b) => b.classList.remove("is-active"));
+    });
     successOverlay.hidden = true;
   });
 }

@@ -984,6 +984,30 @@ export const CHECKLIST_CATEGORIES = [
   },
 ];
 
+// ============================================================
+// KLASIFIKASI ITEM: KUALITATIF (tombol OK/NO) vs BUTUH NILAI AKTUAL
+// (kolom teks biasa, mis. Voltage, Suhu, Ampere, Running Hours, dll)
+// ------------------------------------------------------------
+// Ditentukan otomatis dari kolom "standar" tiap item, supaya tidak
+// perlu edit ratusan item satu-satu. Kalau ada item yang salah
+// terklasifikasi, tambahkan standar-nya ke STANDAR_TETAP_KUALITATIF
+// di bawah (untuk paksa jadi tombol OK/NO).
+// ============================================================
+
+// Standar yang mengandung angka/satuan tapi sebenarnya tetap kualitatif
+// (dicek cocok/tidak, bukan dicatat sebagai angka aktual).
+const STANDAR_TETAP_KUALITATIF = new Set(["5R"]);
+
+// Kata/satuan yang menandakan item butuh pembacaan nilai aktual.
+const POLA_NILAI_AKTUAL = /\d|°|volt|ampere|\bv\b|\ba\b|\bh\b|\bbar\b|mohm|mm\/s|m³|kpa|\bhz\b|hour|meter|menit|\bmin\b|l\/sec|μs\/cm|mg\(|h\s*\/\s*m\s*\/\s*l|l\s*\/\s*m\s*\/\s*h/i;
+
+export function butuhNilaiAktual(standar) {
+  const s = (standar || "").trim();
+  if (!s) return true; // standar kosong = field pencatatan angka (mis. Running Hours Terakhir)
+  if (STANDAR_TETAP_KUALITATIF.has(s)) return false;
+  return POLA_NILAI_AKTUAL.test(s);
+}
+
 export function findChecklist(id) {
   for (const category of CHECKLIST_CATEGORIES) {
     const found = category.checklists.find((c) => c.id === id);

@@ -1624,6 +1624,59 @@ textarea { resize: vertical; min-height: 90px; }
   box-shadow: 0 0 0 3px rgba(35, 70, 105, 0.15);
 }
 
+/* ---------- PM CHECKLIST: tombol OK/NO (item kualitatif) ---------- */
+
+.checklist-okno {
+  display: flex;
+  gap: 8px;
+}
+
+.okno-btn {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.okno-btn:active {
+  transform: scale(0.97);
+}
+
+.okno-btn--ok.is-active {
+  background: var(--running);
+  border-color: var(--running);
+  color: #fff;
+}
+
+.okno-btn--no.is-active {
+  background: var(--breakdown);
+  border-color: var(--breakdown);
+  color: #fff;
+}
+
+/* versi kecil dipakai di dalam sel tabel monthly-grid/daily-grid */
+.checklist-grid-cell-wrap--okno {
+  width: 96px;
+}
+
+.checklist-okno--grid {
+  gap: 4px;
+}
+
+.checklist-okno--grid .okno-btn {
+  padding: 6px 4px;
+  font-size: 11px;
+  min-width: 30px;
+}
+
 /* ---------- PM CHECKLIST: monthly-grid / daily-grid layout ---------- */
 
 .checklist-grid-hint {
