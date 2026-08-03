@@ -68,7 +68,13 @@ function renderCategories(line) {
 
   const categorySelect = document.getElementById("production-category-select");
 
-  renderCategoryCards(categories, "all");
+  // ?category= di URL (dari QR code per mesin) -> langsung filter ke equipment itu.
+  const categoryFromUrl = params.get("category");
+  if (categoryFromUrl) {
+    categorySelect.value = categoryFromUrl;
+  }
+
+  renderCategoryCards(categories, categorySelect.value || "all");
 
   categorySelect.addEventListener("change", () => {
     renderCategoryCards(categories, categorySelect.value);

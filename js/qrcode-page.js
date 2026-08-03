@@ -1,106 +1,83 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import QRCode from "https://esm.sh/qrcode@1.5.3";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { CHECKLIST_CATEGORIES } from "./checklist-data.js";
+import { PRODUCTION_LINES, PRODUCTION_CATEGORIES } from "./production-data.js";
 
 // ---------- ELEMENTS ----------
-const fArea = document.getElementById("f-area");
+const fJenis = document.getElementById("f-jenis");
 const fCari = document.getElementById("f-cari");
 const btnPrint = document.getElementById("btn-print");
 const qrError = document.getElementById("qr-error");
 const qrCount = document.getElementById("qr-count");
 const qrGrid = document.getElementById("qr-grid");
 
-let areas = [];
-let mesinList = [];
-let equipmentList = [];
-
 function showError(msg) {
   qrError.textContent = msg;
   qrError.hidden = false;
 }
 
-// URL absolut ke form Laporan Mesin dengan equipment sudah dipilihkan,
-// dibangun dari origin+path halaman ini saat ini supaya otomatis benar
-// di domain/hosting mana pun app ini dipasang.
-function buildLaporanUrl(equipmentId) {
-  const path = window.location.pathname.replace(/qrcode\.html$/, "laporan.html");
-  return `${window.location.origin}${path}?equipment=${equipmentId}`;
+// Origin+path halaman ini dipakai untuk membangun URL absolut, supaya QR
+// otomatis benar di domain/hosting mana pun app ini dipasang.
+function baseUrl(targetPage) {
+  const path = window.location.pathname.replace(/qrcode\.html$/, targetPage);
+  return `${window.location.origin}${path}`;
 }
 
-async function loadMasterData() {
-  const [areaRes, mesinRes, equipmentRes] = await Promise.all([
-    supabase.from("area").select("id, nama").order("nama"),
-    supabase.from("mesin").select("id, area_id, nama").order("nama"),
-    supabase.from("equipment").select("id, mesin_id, nama").order("nama"),
-  ]);
+// ---------- DAFTAR MESIN (bukan dari database laporan, tapi dari daftar
+// checklist PM Utility & Production yang sudah didefinisikan di app) ----------
 
-  if (areaRes.error || mesinRes.error || equipmentRes.error) {
-    console.error(areaRes.error || mesinRes.error || equipmentRes.error);
-    showError("Gagal memuat data mesin/equipment. Cek koneksi atau konfigurasi Supabase.");
-    qrCount.textContent = "";
-    return;
-  }
+// Mesin Utility (Compressor, Genset, AHU, dll) -> link ke Checklist PM Utility,
+// dengan equipment-nya sudah kefilter otomatis.
+const utilityMachines = CHECKLIST_CATEGORIES.map((category) => ({
+  jenis: "utility",
+  jenisLabel: "Utility",
+  nama: category.label,
+  meta: "Checklist PM Utility",
+  url: `${baseUrl("pm.html")}?category=${encodeURIComponent(category.label)}`,
+}));
 
-  areas = areaRes.data || [];
-  mesinList = mesinRes.data || [];
-  equipmentList = equipmentRes.data || [];
+// Mesin/equipment Production (per line) -> link ke Checklist Production,
+// dengan line + equipment-nya sudah kefilter otomatis.
+const lineByKey = Object.fromEntries(PRODUCTION_LINES.map((l) => [l.key, l]));
+const productionMachines = PRODUCTION_CATEGORIES.map((category) => {
+  const line = lineByKey[category.line];
+  return {
+    jenis: "production",
+    jenisLabel: "Production",
+    nama: category.label,
+    meta: `Checklist Production · ${line?.label || category.line}`,
+    url: `${baseUrl("production.html")}?line=${encodeURIComponent(category.line)}&category=${encodeURIComponent(category.label)}`,
+  };
+});
 
-  fillAreaFilter();
-  render();
-}
+const allMachines = [...utilityMachines, ...productionMachines];
 
-function fillAreaFilter() {
-  for (const area of areas) {
-    const opt = document.createElement("option");
-    opt.value = area.id;
-    opt.textContent = area.nama;
-    fArea.appendChild(opt);
-  }
-}
-
-function matchesFilter(equipment, mesin, area, areaFilter, searchTerm) {
-  if (areaFilter && area?.id !== areaFilter) return false;
+function matchesFilter(machine, jenisFilter, searchTerm) {
+  if (jenisFilter && machine.jenis !== jenisFilter) return false;
   if (!searchTerm) return true;
-  const haystack = `${equipment.nama} ${mesin?.nama || ""} ${area?.nama || ""}`.toLowerCase();
+  const haystack = `${machine.nama} ${machine.meta}`.toLowerCase();
   return haystack.includes(searchTerm);
 }
 
-async function render() {
-  const areaFilter = fArea.value || "";
+function render() {
+  const jenisFilter = fJenis.value || "";
   const searchTerm = (fCari.value || "").trim().toLowerCase();
 
-  const mesinById = Object.fromEntries(mesinList.map((m) => [m.id, m]));
-  const areaById = Object.fromEntries(areas.map((a) => [a.id, a]));
+  const filtered = allMachines
+    .filter((m) => matchesFilter(m, jenisFilter, searchTerm))
+    .sort((a, b) => a.jenisLabel.localeCompare(b.jenisLabel) || a.nama.localeCompare(b.nama));
 
-  const filtered = equipmentList
-    .map((eq) => {
-      const mesin = mesinById[eq.mesin_id];
-      const area = mesin ? areaById[mesin.area_id] : null;
-      return { equipment: eq, mesin, area };
-    })
-    .filter(({ equipment, mesin, area }) => matchesFilter(equipment, mesin, area, areaFilter, searchTerm))
-    .sort((a, b) => {
-      const areaCmp = (a.area?.nama || "").localeCompare(b.area?.nama || "");
-      if (areaCmp !== 0) return areaCmp;
-      const mesinCmp = (a.mesin?.nama || "").localeCompare(b.mesin?.nama || "");
-      if (mesinCmp !== 0) return mesinCmp;
-      return a.equipment.nama.localeCompare(b.equipment.nama);
-    });
-
-  qrCount.textContent = `${filtered.length} equipment ditemukan`;
+  qrCount.textContent = `${filtered.length} mesin ditemukan`;
 
   if (filtered.length === 0) {
-    qrGrid.innerHTML = `<p class="table-empty">Tidak ada equipment yang cocok dengan filter ini.</p>`;
+    qrGrid.innerHTML = `<p class="table-empty">Tidak ada mesin yang cocok dengan filter ini.</p>`;
     return;
   }
 
   qrGrid.innerHTML = filtered
     .map(
-      ({ equipment }) => `
+      (machine, i) => `
       <div class="qr-card">
-        <canvas class="qr-canvas" data-equipment-id="${equipment.id}"></canvas>
+        <canvas class="qr-canvas" data-index="${i}"></canvas>
         <p class="qr-card-equipment"></p>
         <p class="qr-card-meta"></p>
       </div>
@@ -109,22 +86,21 @@ async function render() {
     .join("");
 
   // Isi teks pakai textContent (bukan template string) supaya aman dari
-  // karakter aneh di nama mesin/equipment, lalu render QR per canvas.
+  // karakter aneh di nama mesin, lalu render QR per canvas.
   const cards = qrGrid.querySelectorAll(".qr-card");
-  filtered.forEach(({ equipment, mesin, area }, i) => {
+  filtered.forEach((machine, i) => {
     const card = cards[i];
-    card.querySelector(".qr-card-equipment").textContent = equipment.nama;
-    card.querySelector(".qr-card-meta").textContent = `${mesin?.nama || "-"} · ${area?.nama || "-"}`;
+    card.querySelector(".qr-card-equipment").textContent = machine.nama;
+    card.querySelector(".qr-card-meta").textContent = machine.meta;
 
     const canvas = card.querySelector(".qr-canvas");
-    const url = buildLaporanUrl(equipment.id);
-    QRCode.toCanvas(canvas, url, { width: 160, margin: 1 }, (err) => {
-      if (err) console.error("Gagal render QR untuk", equipment.nama, err);
+    QRCode.toCanvas(canvas, machine.url, { width: 160, margin: 1 }, (err) => {
+      if (err) console.error("Gagal render QR untuk", machine.nama, err);
     });
   });
 }
 
-fArea.addEventListener("change", render);
+fJenis.addEventListener("change", render);
 fCari.addEventListener("input", debounce(render, 200));
 btnPrint.addEventListener("click", () => window.print());
 
@@ -136,4 +112,10 @@ function debounce(fn, ms) {
   };
 }
 
-loadMasterData();
+try {
+  render();
+} catch (err) {
+  console.error(err);
+  showError("Gagal memuat daftar mesin.");
+  qrCount.textContent = "";
+}

@@ -267,7 +267,7 @@ function renderBreakdownPerMesin(rowsInMonth) {
   const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
   if (entries.length === 0) {
-    emptyChartMsg("chart-breakdown-mesin", "Tidak ada laporan Breakdown bulan ini.");
+    emptyChartMsg("chart-breakdown-mesin", "Tidak ada laporan Breakdown bulan ini. 🎉");
     breakdownSub.textContent = "Tidak ada breakdown pada bulan ini.";
     return;
   }

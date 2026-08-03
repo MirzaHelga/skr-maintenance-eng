@@ -49,7 +49,7 @@
         </div>
         <div class="topbar-text">
           <span class="topbar-title">QR Mesin</span>
-          <span class="topbar-sub">Cetak &amp; tempel QR di tiap mesin untuk akses cepat form laporan</span>
+          <span class="topbar-sub">Cetak &amp; tempel QR di tiap mesin untuk akses cepat checklist PM / Production</span>
         </div>
         <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
           <span></span><span></span><span></span>
@@ -62,7 +62,7 @@
       <div class="dash-header no-print">
         <div>
           <p class="dash-header-title">QR Mesin</p>
-          <p class="dash-header-date">Scan QR di mesin → form Laporan Mesin langsung terisi otomatis</p>
+          <p class="dash-header-date">Scan QR di mesin → checklist PM Utility / Production langsung terbuka</p>
         </div>
         <div class="dash-actions">
           <button type="button" id="btn-print" class="dash-action-btn dash-action-primary">🖶 Cetak semua</button>
@@ -73,9 +73,11 @@
       <section class="filter-card no-print">
         <div class="filter-row">
           <div class="filter-field">
-            <label class="field-label" for="f-area">Area</label>
-            <select id="f-area">
-              <option value="">Semua area</option>
+            <label class="field-label" for="f-jenis">Jenis</label>
+            <select id="f-jenis">
+              <option value="">Semua jenis</option>
+              <option value="utility">Utility</option>
+              <option value="production">Production</option>
             </select>
           </div>
           <div class="filter-field">
@@ -92,7 +94,7 @@
         <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
         <div>
           <p class="qr-print-title">QR Code Mesin — Savoria Kreasi Rasa</p>
-          <p class="qr-print-sub">Scan untuk membuka form Laporan Mesin equipment ini</p>
+          <p class="qr-print-sub">Scan untuk membuka checklist PM / Production mesin ini</p>
         </div>
       </div>
 

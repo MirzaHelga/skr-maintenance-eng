@@ -18,9 +18,16 @@ selectWrap.innerHTML = `
 
 const select = document.getElementById("pm-category-select");
 
-// Kembalikan pilihan terakhir dari session (biar tidak reset saat balik dari halaman checklist)
+// Prioritas pilihan awal: ?category= di URL (dari QR code per mesin) > filter
+// terakhir yang tersimpan di session (biar tidak reset saat balik dari halaman checklist).
+const params = new URLSearchParams(window.location.search);
+const categoryFromUrl = params.get("category");
 const savedFilter = sessionStorage.getItem("pm-category-filter");
-if (savedFilter) {
+
+if (categoryFromUrl) {
+  select.value = categoryFromUrl;
+  sessionStorage.setItem("pm-category-filter", categoryFromUrl);
+} else if (savedFilter) {
   select.value = savedFilter;
 }
 
