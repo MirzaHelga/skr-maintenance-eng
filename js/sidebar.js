@@ -43,3 +43,17 @@ function toggleSidebar() {
 btnMenu.addEventListener("click", toggleSidebar);
 btnSidebarClose?.addEventListener("click", closeSidebar);
 sidebarOverlay.addEventListener("click", closeSidebar);
+
+function highlightActiveSidebarLink() {
+  const currentPage = window.location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll(".sidebar-link").forEach((link) => {
+    const linkPage = link.getAttribute("href");
+    if (linkPage === currentPage) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+}
+
+highlightActiveSidebarLink();
