@@ -138,6 +138,20 @@ export async function logout() {
       entityId: session.userId,
       entityLabel: session.username,
     });
+    // Hapus baris presence device INI aja (bukan semua device akun ini)
+    // biar langsung hilang dari "Online Sekarang" begitu logout, tanpa
+    // ganggu device lain yang masih login pakai akun yang sama. Gagal
+    // pun tidak masalah, nanti otomatis hilang sendiri karena updated_at
+    // basi.
+    try {
+      await supabase
+        .from("user_presence")
+        .delete()
+        .eq("user_id", session.userId)
+        .eq("device_id", getDeviceId());
+    } catch (err) {
+      console.warn("Gagal hapus presence saat logout:", err);
+    }
   }
   sessionStorage.removeItem(SESSION_KEY);
   window.location.href = "index.html";
@@ -180,6 +194,7 @@ function guard() {
   }
 
   initShell(session.role);
+  startPresenceTracking(session);
 }
 
 // ---------- SIDEBAR + TOPBAR SESUAI ROLE ----------
@@ -312,6 +327,94 @@ async function setupNotificationBell() {
   refresh();
   // Polling ringan, bukan realtime — cukup buat kebutuhan "ada draft baru".
   setInterval(refresh, 30000);
+}
+
+// ---------- PRESENCE (Online Sekarang) ----------
+// Kirim "heartbeat" berkala ke tabel user_presence: nama, role, device,
+// halaman yang lagi dibuka, dan lokasi GPS terakhir (kalau user
+// mengizinkan). Dipanggil otomatis dari guard() di semua halaman yang
+// sudah login — tidak perlu ditambah manual di tiap HTML.
+const PRESENCE_INTERVAL_MS = 60000; // 1 menit
+const DEVICE_ID_KEY = "mtc-device-id";
+
+// ID acak per device/browser, disimpan di localStorage (BUKAN
+// sessionStorage) supaya tetap sama walau logout-login berkali-kali di
+// device yang sama — jadi 1 akun yang dipakai di 2 HP tetap kelihatan
+// sebagai 2 baris terpisah di "Online Sekarang", bukan saling menimpa.
+function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
+
+// Label device yang gampang dibaca, mis. "Android · Chrome" atau
+// "iPhone · Safari" — bukan deteksi presisi, cukup buat gambaran umum.
+function getDeviceLabel() {
+  const ua = navigator.userAgent || "";
+
+  let os = "Desktop";
+  if (/iPad/i.test(ua)) os = "iPad";
+  else if (/iPhone/i.test(ua)) os = "iPhone";
+  else if (/Android/i.test(ua)) os = "Android";
+  else if (/Macintosh/i.test(ua)) os = "Mac";
+  else if (/Windows/i.test(ua)) os = "Windows";
+  else if (/Linux/i.test(ua)) os = "Linux";
+
+  let browser = "Browser";
+  if (/EdgA?\//i.test(ua)) browser = "Edge";
+  else if (/OPR\/|Opera/i.test(ua)) browser = "Opera";
+  else if (/CriOS\//i.test(ua)) browser = "Chrome";
+  else if (/FxiOS\/|Firefox\//i.test(ua)) browser = "Firefox";
+  else if (/Chrome\//i.test(ua)) browser = "Chrome";
+  else if (/Safari\//i.test(ua)) browser = "Safari";
+
+  return `${os} · ${browser}`;
+}
+
+function sendPresenceHeartbeat(session, position) {
+  const row = {
+    user_id: session.userId,
+    device_id: getDeviceId(),
+    device_label: getDeviceLabel(),
+    username: session.username,
+    nama: session.nama,
+    role: session.role,
+    halaman: currentPageFile(),
+    updated_at: new Date().toISOString(),
+  };
+  if (position) {
+    row.latitude = position.coords.latitude;
+    row.longitude = position.coords.longitude;
+    row.accuracy = position.coords.accuracy;
+  }
+  supabase
+    .from("user_presence")
+    .upsert(row, { onConflict: "user_id,device_id" })
+    .then(({ error }) => {
+      if (error) console.warn("Gagal kirim presence:", error);
+    });
+}
+
+function startPresenceTracking(session) {
+  const tick = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => sendPresenceHeartbeat(session, pos),
+        // Izin ditolak / gagal ambil lokasi -> tetap kirim heartbeat TANPA
+        // koordinat, supaya device ini tetap kelihatan online di halaman
+        // "Online Sekarang", cuma tanpa titik di peta.
+        () => sendPresenceHeartbeat(session, null),
+        { enableHighAccuracy: false, maximumAge: 60000, timeout: 10000 }
+      );
+    } else {
+      sendPresenceHeartbeat(session, null);
+    }
+  };
+  tick();
+  setInterval(tick, PRESENCE_INTERVAL_MS);
 }
 
 function escapeHtml(str) {

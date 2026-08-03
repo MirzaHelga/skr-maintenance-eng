@@ -2720,3 +2720,49 @@ thead .checklist-grid-uraian-head {
 
 #audit-table tbody tr:last-child td { border-bottom: none; }
 #audit-table tbody tr:hover { background: #FAFAF9; }
+
+/* ---------- ONLINE SEKARANG (online.html) ---------- */
+
+.online-map {
+  height: 420px;
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1.5px solid var(--line);
+  background: #F7F8F7;
+}
+
+.online-map-hint {
+  margin: 10px 0 0;
+}
+
+.online-status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.online-status-dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  flex: none;
+}
+
+.online-status-dot.is-online { color: var(--running); }
+.online-status-dot.is-online::before { background: var(--running); }
+.online-status-dot.is-offline { color: var(--ink-soft); }
+
+#online-table td, #online-table th { white-space: nowrap; }
+
+.online-popup {
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.online-popup strong { display: block; margin-bottom: 2px; }
