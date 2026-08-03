@@ -7,7 +7,7 @@
 // terpisah (IndexedDB) yang belum dibuat. Yang di-cache cuma tampilan
 // (shell) appnya, bukan datanya.
 
-const CACHE_VERSION = "skr-mtc-v7";
+const CACHE_VERSION = "skr-mtc-v8";
 const APP_SHELL = [
   "./index.html",
   "./dashboard.html",
