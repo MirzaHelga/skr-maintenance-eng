@@ -2758,7 +2758,32 @@ thead .checklist-grid-uraian-head {
 .online-status-dot.is-online::before { background: var(--running); }
 .online-status-dot.is-offline { color: var(--ink-soft); }
 
-#online-table td, #online-table th { white-space: nowrap; }
+#online-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 760px;
+  font-size: 13.5px;
+}
+
+#online-table th, #online-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+#online-table th {
+  background: #F7F8F7;
+  font-family: var(--font-display);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+#online-table tbody tr:last-child td { border-bottom: none; }
+#online-table tbody tr:hover { background: #FAFAF9; }
 
 .online-popup {
   font-family: var(--font-body);
