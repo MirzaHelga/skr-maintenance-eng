@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
-import { displayName } from "./auth.js";
+import { displayName, getSession } from "./auth.js";
+import { logAudit } from "./audit.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -170,6 +171,10 @@ function reviewFooter(row) {
   return `<p class="draft-review-footer">${text}</p>`;
 }
 
+function entityLabelFor(tipe, row) {
+  return tipe === "laporan" ? row.equipment?.nama || row.mesin?.nama || "Laporan" : row.checklist_title || "Checklist";
+}
+
 function actionButtons(tipe, row) {
   const detailBtn = `<button type="button" class="btn-link-btn pm-detail-btn" data-tipe="${tipe}" data-id="${row.id}">Lihat detail</button>`;
 
@@ -177,13 +182,13 @@ function actionButtons(tipe, row) {
     return `<div class="draft-actions">${detailBtn}</div>`;
   }
 
+  const label = escapeHtml(entityLabelFor(tipe, row));
+
   return `
     <div class="draft-actions">
       ${detailBtn}
-      <button type="button" class="btn-approve" data-tipe="${tipe}" data-id="${row.id}">Approve</button>
-      <button type="button" class="btn-reject" data-tipe="${tipe}" data-id="${row.id}" data-label="${escapeHtml(
-    tipe === "laporan" ? row.equipment?.nama || "Laporan" : row.checklist_title || "Checklist"
-  )}">Reject</button>
+      <button type="button" class="btn-approve" data-tipe="${tipe}" data-id="${row.id}" data-label="${label}">Approve</button>
+      <button type="button" class="btn-reject" data-tipe="${tipe}" data-id="${row.id}" data-label="${label}">Reject</button>
     </div>
   `;
 }
@@ -255,7 +260,7 @@ function bindActions(card, row) {
     btn.addEventListener("click", () => openDetail(btn.dataset.tipe, row));
   });
   card.querySelectorAll(".btn-approve").forEach((btn) => {
-    btn.addEventListener("click", () => approveItem(btn.dataset.tipe, btn.dataset.id));
+    btn.addEventListener("click", () => approveItem(btn.dataset.tipe, btn.dataset.id, btn.dataset.label));
   });
   card.querySelectorAll(".btn-reject").forEach((btn) => {
     btn.addEventListener("click", () => openRejectModal(btn.dataset.tipe, btn.dataset.id, btn.dataset.label));
@@ -268,7 +273,7 @@ const TABLE_BY_TIPE = {
   production_checklist: "production_checklist_submission",
 };
 
-async function approveItem(tipe, id) {
+async function approveItem(tipe, id, label) {
   const { error } = await supabase
     .from(TABLE_BY_TIPE[tipe])
     .update({
@@ -284,11 +289,24 @@ async function approveItem(tipe, id) {
     showError("Gagal approve data. (" + (error.message || "unknown error") + ")");
     return;
   }
+
+  const session = getSession();
+  logAudit(supabase, {
+    actorId: session?.userId,
+    actorUsername: session?.username,
+    actorNama: session?.nama,
+    actorRole: session?.role,
+    action: "approve",
+    entityType: tipe,
+    entityId: id,
+    entityLabel: label,
+  });
+
   loadDrafts();
 }
 
 function openRejectModal(tipe, id, label) {
-  pendingReject = { tipe, id };
+  pendingReject = { tipe, id, label };
   rejectTargetLabel.textContent = label || "";
   rejectReason.value = "";
   rejectError.hidden = true;
@@ -329,6 +347,19 @@ rejectConfirm.addEventListener("click", async () => {
     showError("Gagal menolak data. (" + (error.message || "unknown error") + ")");
     return;
   }
+
+  const session = getSession();
+  logAudit(supabase, {
+    actorId: session?.userId,
+    actorUsername: session?.username,
+    actorNama: session?.nama,
+    actorRole: session?.role,
+    action: "reject",
+    entityType: tipe,
+    entityId: id,
+    entityLabel: pendingReject.label,
+    detail: reason,
+  });
 
   closeRejectModal();
   loadDrafts();

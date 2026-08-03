@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Draft — Maintenance App</title>
+<title>QR Mesin — Maintenance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="assets/icon-192.png" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
-<body data-page="draft" data-allow="spv,superadmin">
+<body data-page="qrcode" data-allow="spv,superadmin">
 
 <div class="app-shell">
 
@@ -26,7 +26,7 @@
         </div>
       </div>
     </div>
-  <a href="dashboard.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
+    <a href="dashboard.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
       <a href="trend.html" class="sidebar-link" data-role="spv,superadmin">Trend</a>
       <a href="laporan.html" class="sidebar-link" data-role="all">Report</a>
       <a href="pm.html" class="sidebar-link" data-role="all">Utility</a>
@@ -42,14 +42,14 @@
 
   <div class="app-main">
 
-    <div class="topbar">
+    <div class="topbar no-print">
       <div class="topbar-inner">
         <div class="topbar-logo">
           <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
         </div>
         <div class="topbar-text">
-          <span class="topbar-title">Draft</span>
-          <span class="topbar-sub">Tinjau laporan &amp; checklist PM dari operator</span>
+          <span class="topbar-title">QR Mesin</span>
+          <span class="topbar-sub">Cetak &amp; tempel QR di tiap mesin untuk akses cepat form laporan</span>
         </div>
         <button type="button" class="menu-btn" id="btn-menu" aria-label="Buka menu">
           <span></span><span></span><span></span>
@@ -59,17 +59,44 @@
 
     <main class="wrap wrap-wide">
 
-      <div class="draft-tabs" id="draft-tabs">
-        <button type="button" class="draft-tab active" data-status="draft">Menunggu review</button>
-        <button type="button" class="draft-tab" data-status="approved">Disetujui</button>
-        <button type="button" class="draft-tab" data-status="rejected">Ditolak</button>
-        <button type="button" class="draft-tab" data-status="">Semua</button>
+      <div class="dash-header no-print">
+        <div>
+          <p class="dash-header-title">QR Mesin</p>
+          <p class="dash-header-date">Scan QR di mesin → form Laporan Mesin langsung terisi otomatis</p>
+        </div>
+        <div class="dash-actions">
+          <button type="button" id="btn-print" class="dash-action-btn dash-action-primary">🖶 Cetak semua</button>
+        </div>
       </div>
 
-      <p class="form-error" id="draft-error" hidden></p>
-      <p class="rekap-count" id="draft-count">Memuat data…</p>
+      <!-- FILTER -->
+      <section class="filter-card no-print">
+        <div class="filter-row">
+          <div class="filter-field">
+            <label class="field-label" for="f-area">Area</label>
+            <select id="f-area">
+              <option value="">Semua area</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label class="field-label" for="f-cari">Cari mesin / equipment</label>
+            <input type="text" id="f-cari" placeholder="Ketik nama mesin atau equipment…" />
+          </div>
+        </div>
+      </section>
 
-      <div class="draft-list" id="draft-list"></div>
+      <p class="form-error no-print" id="qr-error" hidden></p>
+      <p class="qr-count no-print" id="qr-count">Memuat data…</p>
+
+      <div class="qr-print-header">
+        <img src="assets/logo.png" alt="Savoria Kreasi Rasa" />
+        <div>
+          <p class="qr-print-title">QR Code Mesin — Savoria Kreasi Rasa</p>
+          <p class="qr-print-sub">Scan untuk membuka form Laporan Mesin equipment ini</p>
+        </div>
+      </div>
+
+      <div class="qr-grid" id="qr-grid"></div>
 
     </main>
 
@@ -79,35 +106,9 @@
 
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-<!-- MODAL LIHAT DETAIL -->
-<div class="pm-detail-overlay" id="pm-detail-overlay" hidden>
-  <div class="pm-detail-card">
-    <button type="button" class="pm-detail-close" id="pm-detail-close" aria-label="Tutup">&times;</button>
-    <p class="pm-detail-title" id="pm-detail-title"></p>
-    <p class="pm-detail-sub" id="pm-detail-sub"></p>
-    <div class="pm-detail-meta" id="pm-detail-meta"></div>
-    <div class="pm-detail-body" id="pm-detail-body"></div>
-    <div class="pm-detail-foto" id="pm-detail-foto"></div>
-    <div class="pm-detail-catatan" id="pm-detail-catatan"></div>
-  </div>
-</div>
-
-<!-- MODAL ALASAN TOLAK -->
-<div class="pm-detail-overlay" id="reject-overlay" hidden>
-  <div class="pm-detail-card reject-modal-card">
-    <button type="button" class="pm-detail-close" id="reject-close" aria-label="Tutup">&times;</button>
-    <p class="pm-detail-title">Tolak draft</p>
-    <p class="pm-detail-sub" id="reject-target-label"></p>
-    <label class="field-label" for="reject-reason">Alasan penolakan</label>
-    <textarea id="reject-reason" rows="4" placeholder="Jelaskan alasan penolakan…"></textarea>
-    <p class="field-error" id="reject-error" hidden>Isi dulu alasan penolakannya.</p>
-    <button type="button" id="reject-confirm" class="btn-submit reject-confirm-btn">Kirim penolakan</button>
-  </div>
-</div>
-
 <script src="js/sidebar.js"></script>
 <script type="module" src="js/auth.js"></script>
-<script type="module" src="js/draft.js"></script>
+<script type="module" src="js/qrcode-page.js"></script>
 <script src="js/pwa.js"></script>
 </body>
 </html>

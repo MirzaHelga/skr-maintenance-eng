@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { getSession } from "./auth.js";
+import { logAuditBulk } from "./audit.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -252,6 +254,24 @@ confirmHapus.addEventListener("click", async () => {
     const ids = rows.map((r) => r.id);
     const { error } = await supabase.from(cfg.table).delete().in("id", ids);
     if (error) throw error;
+
+    const session = getSession();
+    logAuditBulk(
+      supabase,
+      rows.map((row) => ({
+        actorId: session?.userId,
+        actorUsername: session?.username,
+        actorNama: session?.nama,
+        actorRole: session?.role,
+        action: "hapus_data",
+        entityType: type,
+        entityId: row.id,
+        entityLabel: cfg.renderDetail(row),
+        detail: `Status: ${row.review_status === "approved" ? "Approved" : "Rejected"}${
+          row.reviewed_by ? " · direview oleh " + row.reviewed_by : ""
+        }`,
+      }))
+    );
 
     closeConfirm();
     currentRows = currentRows.filter((r) => !selectedIds.has(r.id));

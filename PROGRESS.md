@@ -125,3 +125,33 @@ Jalankan urut, dari project Supabase yang sudah di-setup lengkap
 Kalau semua poin di atas lolos, fitur akun & superadmin sudah siap
 dipakai. File `PROGRESS.md` ini boleh dihapus kapan saja setelah itu —
 isinya cuma catatan riwayat pengerjaan, tidak dipakai oleh aplikasi.
+
+## ✅ Part 9 — Audit Log (SELESAI)
+
+- [x] `sql/add_audit_log.sql` — tabel `audit_log` (aktor, aksi, jenis &
+      id data terkait, keterangan) + RLS (cuma SELECT + INSERT, sengaja
+      tanpa UPDATE/DELETE supaya baris yang sudah tercatat tidak bisa
+      diubah lewat aplikasi).
+- [x] `js/audit.js` — modul kecil `logAudit()`/`logAuditBulk()` yang
+      dipakai bareng oleh beberapa halaman, tidak bergantung ke
+      `auth.js` (biar bisa dipakai dari dalam `auth.js` sendiri tanpa
+      import melingkar).
+- [x] Dicatat otomatis: login berhasil/gagal & logout (`auth.js`),
+      tambah/ubah/reset password/aktifkan/nonaktifkan user
+      (`kelola-user.js`), approve/reject draft (`draft.js`), dan hapus
+      data permanen per baris (`bersihkan-data.js`).
+- [x] Halaman baru `audit-log.html` (khusus superadmin) — filter per
+      aksi/jenis data/aktor/rentang tanggal, tabel dengan badge warna
+      per jenis aksi, dan export ke Excel.
+- [x] Link "Audit Log" ditambahin ke sidebar semua halaman.
+- [x] `sw.js` & README diupdate.
+
+**Batasan**: karena app masih pakai anon key tanpa Supabase Auth
+beneran (lihat "Catatan keamanan" di README), audit log ini bisa
+dilacak balik/dipalsukan oleh orang yang pegang Project URL + anon key
+langsung lewat API, di luar aplikasi. Cukup buat melacak pemakaian
+normal lewat app, bukan bukti forensik yang tamper-proof.
+
+Dengan ini, semua 9 bagian dari rencana pengerjaan sudah selesai. File
+`PROGRESS.md` ini boleh dihapus kapan saja — isinya cuma catatan
+riwayat pengerjaan, tidak dipakai oleh aplikasi.

@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { logAudit } from "./audit.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -49,11 +50,46 @@ export async function loginWithUsername(username, password) {
     console.error(error);
     return { ok: false, reason: "error" };
   }
-  if (!data) return { ok: false, reason: "not_found" };
-  if (!data.is_active) return { ok: false, reason: "inactive" };
+  if (!data) {
+    logAudit(supabase, {
+      action: "login_gagal",
+      entityType: "auth",
+      entityLabel: uname,
+      detail: "Username tidak ditemukan",
+    });
+    return { ok: false, reason: "not_found" };
+  }
+  if (!data.is_active) {
+    logAudit(supabase, {
+      action: "login_gagal",
+      entityType: "auth",
+      entityLabel: uname,
+      detail: "Akun dinonaktifkan",
+    });
+    return { ok: false, reason: "inactive" };
+  }
 
   const hash = await hashPassword(password);
-  if (hash !== data.password_hash) return { ok: false, reason: "wrong_password" };
+  if (hash !== data.password_hash) {
+    logAudit(supabase, {
+      action: "login_gagal",
+      entityType: "auth",
+      entityLabel: uname,
+      detail: "Password salah",
+    });
+    return { ok: false, reason: "wrong_password" };
+  }
+
+  logAudit(supabase, {
+    actorId: data.id,
+    actorUsername: data.username,
+    actorNama: data.nama,
+    actorRole: data.role,
+    action: "login_berhasil",
+    entityType: "auth",
+    entityId: data.id,
+    entityLabel: data.username,
+  });
 
   return { ok: true, user: data };
 }
@@ -89,7 +125,20 @@ export function setSession(user) {
   );
 }
 
-export function logout() {
+export async function logout() {
+  const session = getSession();
+  if (session) {
+    await logAudit(supabase, {
+      actorId: session.userId,
+      actorUsername: session.username,
+      actorNama: session.nama,
+      actorRole: session.role,
+      action: "logout",
+      entityType: "auth",
+      entityId: session.userId,
+      entityLabel: session.username,
+    });
+  }
   sessionStorage.removeItem(SESSION_KEY);
   window.location.href = "index.html";
 }

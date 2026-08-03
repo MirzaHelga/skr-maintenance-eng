@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 import { getSession, hashPassword, ROLE_LABEL } from "./auth.js";
+import { logAudit } from "./audit.js";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -31,6 +32,7 @@ const resetConfirm = document.getElementById("reset-confirm");
 
 let editingId = null; // null = mode tambah, string = mode edit (id user)
 let resettingId = null;
+let resettingUsername = null;
 let currentUsers = [];
 
 const session = getSession();
@@ -39,6 +41,15 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str ?? "";
   return div.innerHTML;
+}
+
+function actorFields() {
+  return {
+    actorId: session?.userId,
+    actorUsername: session?.username,
+    actorNama: session?.nama,
+    actorRole: session?.role,
+  };
 }
 
 function showError(msg) {
@@ -182,6 +193,15 @@ form.addEventListener("submit", async (e) => {
         .update({ username, nama, role, updated_at: new Date().toISOString() })
         .eq("id", editingId);
       if (error) throw error;
+
+      logAudit(supabase, {
+        ...actorFields(),
+        action: "user_ubah",
+        entityType: "app_user",
+        entityId: editingId,
+        entityLabel: username,
+        detail: `Nama: ${nama || "-"} · Role: ${ROLE_LABEL[role] || role}`,
+      });
     } else {
       const password = ufPassword.value;
       if (!password || password.length < 6) {
@@ -190,10 +210,21 @@ form.addEventListener("submit", async (e) => {
         return;
       }
       const password_hash = await hashPassword(password);
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from("app_user")
-        .insert({ username, nama, role, password_hash });
+        .insert({ username, nama, role, password_hash })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      logAudit(supabase, {
+        ...actorFields(),
+        action: "user_tambah",
+        entityType: "app_user",
+        entityId: inserted?.id,
+        entityLabel: username,
+        detail: `Nama: ${nama || "-"} · Role: ${ROLE_LABEL[role] || role}`,
+      });
     }
 
     closeFormModal();
@@ -214,6 +245,7 @@ form.addEventListener("submit", async (e) => {
 // ---------- MODAL RESET PASSWORD ----------
 function openResetModal(u) {
   resettingId = u.id;
+  resettingUsername = u.username;
   resetTargetLabel.textContent = `${u.nama || u.username} (${u.username})`;
   resetPassword.value = "";
   resetError.hidden = true;
@@ -257,6 +289,14 @@ resetConfirm.addEventListener("click", async () => {
     return;
   }
 
+  logAudit(supabase, {
+    ...actorFields(),
+    action: "user_reset_password",
+    entityType: "app_user",
+    entityId: resettingId,
+    entityLabel: resettingUsername,
+  });
+
   closeResetModal();
 });
 
@@ -283,6 +323,15 @@ async function toggleActive(u) {
     showError("Gagal mengubah status akun. (" + (error.message || "unknown error") + ")");
     return;
   }
+
+  logAudit(supabase, {
+    ...actorFields(),
+    action: nextActive ? "user_aktifkan" : "user_nonaktifkan",
+    entityType: "app_user",
+    entityId: u.id,
+    entityLabel: u.username,
+  });
+
   loadUsers();
 }
 

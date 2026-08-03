@@ -19,11 +19,133 @@ dipakai sebagai database + storage foto.
    untuk bikin/ubah/nonaktifkan akun operator, SPV, maupun superadmin
    lain.
 
+## QR Mesin (`qrcode.html`)
+
+Tiap equipment di database otomatis dapat QR code sendiri (di-generate
+di browser, tidak perlu disimpan/upload ke mana-mana). Isi QR adalah
+link ke `laporan.html?equipment=<id>` — begitu di-scan, form Laporan
+Mesin langsung kebuka dengan **area, mesin, dan equipment sudah
+terpilih otomatis**, operator tinggal isi status + deskripsi + foto.
+
+- Filter per area atau cari nama mesin/equipment.
+- Tombol **Cetak semua** (`window.print()`) — layout otomatis rapi
+  buat dicetak/ditempel per mesin (sidebar & filter disembunyikan saat
+  print lewat CSS `@media print`).
+- Cuma butuh tabel `area`/`mesin`/`equipment` yang sudah ada (tidak ada
+  tabel baru) — kalau nanti nambah/pindah mesin, QR baru otomatis
+  muncul di halaman ini begitu data equipment-nya ada di database.
+- **Batasan saat ini**: link QR ini cuma buat form **Laporan Mesin**.
+  Checklist PM (`pm.html`/`checklist.html`) dan Production pakai
+  daftar statis per kategori (`checklist-data.js`/`production-data.js`),
+  bukan tabel `equipment`, jadi belum bisa di-pra-isi dari QR dengan
+  cara yang sama — bisa dikerjakan menyusul kalau dibutuhkan.
+- Pakai library [`qrcode`](https://www.npmjs.com/package/qrcode) via
+  `esm.sh`, sama seperti `xlsx` yang sudah dipakai di halaman rekap —
+  tidak perlu instalasi tambahan.
+
+## Audit Log (`audit-log.html`)
+
+Halaman khusus superadmin buat lihat jejak aktivitas penting di aplikasi
+ini — siapa melakukan apa dan kapan:
+
+- **Login/logout**: login berhasil, login gagal (username tidak
+  ditemukan, password salah, atau akun nonaktif), dan logout.
+- **Kelola User**: tambah akun, ubah data akun, reset password,
+  aktifkan/nonaktifkan akun.
+- **Draft**: approve dan reject (laporan Mesin, Checklist PM, maupun
+  Production) — termasuk alasan reject.
+- **Bersihkan Data**: tiap data yang dihapus permanen dicatat satu per
+  satu (bukan cuma jumlahnya), lengkap dengan status terakhirnya
+  sebelum dihapus.
+- Bisa difilter per jenis aksi, jenis data, cari nama/username aktor,
+  dan rentang tanggal, plus export ke Excel.
+- Baris di tabel `audit_log` **tidak bisa diubah/dihapus lewat
+  aplikasi ini** (RLS cuma kasih izin SELECT + INSERT) — dibuat begitu
+  supaya riwayatnya tetap bisa dipercaya.
+
+Setiap kali ada aksi yang dicatat, `js/audit.js` mengirim insert ke
+tabel `audit_log` secara terpisah dari aksi utamanya — kalau pencatatan
+gagal (mis. tabelnya belum dibuat), aksi utama (login, approve, hapus
+data, dst) tetap jalan seperti biasa, cuma dicatat error-nya di console.
+
+## Riwayat Mesin (`riwayat-mesin.html`)
+
+Halaman detail per equipment — sebelumnya histori 1 mesin cuma bisa
+dilihat dengan cari manual satu-satu di tabel Rekap. Sekarang:
+
+- Pilih area → mesin → equipment (atau buka lewat link
+  `riwayat-mesin.html?equipment=<id>`, mis. dari halaman lain nanti).
+- Kartu ringkasan: total laporan, jumlah breakdown/maintenance/running,
+  dan status laporan terakhir.
+- **Timeline** kronologis semua laporan equipment itu — status,
+  tanggal/jam/shift, deskripsi, PIC, status review (termasuk alasan
+  kalau ditolak), dan thumbnail foto (klik buat lihat ukuran penuh).
+- Bisa difilter rentang tanggal.
+- Tombol "+ Laporan baru mesin ini" langsung ke form Laporan Mesin
+  dengan equipment yang sama sudah terisi (pakai mekanisme yang sama
+  dengan QR Mesin).
+- **Batasan sama seperti QR Mesin**: timeline ini isinya laporan dari
+  tabel `laporan` saja. Checklist PM/Production belum ikut karena
+  strukturnya belum terhubung ke tabel `equipment` (lihat catatan di
+  bagian QR Mesin).
+
+## Trend & Analytics (`trend.html`)
+
+Halaman khusus SPV & superadmin buat lihat pola, bukan cuma angka hari
+ini kayak di Dashboard:
+
+- **Trend status per bulan** — stacked bar Running/Standby/Maintenance/
+  Breakdown untuk 3/6/12 bulan terakhir (dari bulan yang dipilih mundur).
+- **Distribusi status bulan terpilih** — donut chart.
+- **Mesin paling sering breakdown bulan terpilih** — bar chart top 10,
+  supaya cepat kelihatan mesin mana yang paling banyak makan waktu.
+- **Tabel ranking lengkap** — semua mesin di bulan itu dengan rincian
+  jumlah per status, diurutkan dari breakdown terbanyak (juga jadi
+  fallback yang bisa dibaca screen reader / tanpa JS chart).
+- Bisa difilter per area, dan datanya mengikuti semua laporan (semua
+  status review — draft/approved/rejected — sama seperti Dashboard).
+
+Pakai [Chart.js](https://www.chartjs.org/) lewat dynamic `import()` dari
+`esm.sh` (bukan `<script>` tag dari `cdnjs` lagi — beberapa jaringan
+kantor/firewall memblokir domain `cdnjs.cloudflare.com` sepenuhnya,
+sedangkan `esm.sh` sudah pasti kepakai di app ini buat
+`@supabase/supabase-js` & `xlsx`, jadi lebih aman dipakai juga buat
+Chart.js). Tidak perlu instalasi apa pun. Butuh policy baca tabel `laporan` yang sama
+dengan Dashboard/Rekap (`sql/add_rekap_read_policy.sql`).
+
+## PWA (bisa di-install ke HP)
+
+App ini sudah bisa di-"Add to Home Screen" / install seperti aplikasi
+biasa (Android Chrome & iOS Safari), lewat `manifest.webmanifest` +
+`sw.js` (service worker).
+
+- Yang di-cache: tampilan app (HTML/CSS/JS/logo/icon) — jadi app kebuka
+  cepat dan tetap kebuka meski sinyal lemot/putus sebentar.
+- Yang **TIDAK** offline: data (laporan, checklist, rekap, login) tetap
+  butuh internet karena disimpan di Supabase. Kalau koneksi mati pas
+  buka halaman baru, muncul halaman "Koneksi terputus" (`offline.html`)
+  alih-alih layar putih.
+- File terkait: `manifest.webmanifest`, `sw.js`, `offline.html`,
+  `js/pwa.js` (daftarin service worker), `assets/icon-192.png`,
+  `assets/icon-512.png`, `assets/icon-maskable-512.png`.
+- Kalau ganti isi CSS/JS dan mau user langsung dapat versi baru, naikkan
+  `CACHE_VERSION` di `sw.js` (mis. `skr-mtc-v2`) — kalau tidak, browser
+  bisa masih pakai app-shell versi lama dari cache untuk sementara
+  (biasanya update sendiri di kunjungan berikutnya).
+
 ## Isi folder
 
 ```
 login.html                     login pakai username & password
 index.html                     dashboard ringkasan (SPV & superadmin)
+trend.html                     trend & analytics: status per bulan, mesin paling sering
+                                breakdown, ranking lengkap (SPV & superadmin)
+qrcode.html                     generate & cetak QR code per equipment — scan buka form
+                                Laporan Mesin dengan equipment sudah terisi otomatis
+                                (SPV & superadmin)
+riwayat-mesin.html              histori laporan 1 equipment dalam satu timeline (bukan
+                                tersebar di tabel rekap) — total, breakdown, foto, dst
+                                (SPV & superadmin)
 laporan.html                   form Laporan Mesin (semua role)
 rekap.html                     rekap laporan + export Excel (SPV & superadmin)
 pm.html                        pilih equipment & periode checklist PM (semua role)
@@ -35,6 +157,7 @@ rekap-production.html          rekap Production + detail + export Excel (SPV & s
 draft.html                     tinjau & approve/reject draft (SPV & superadmin) — laporan, Checklist PM, & Production
 kelola-user.html               kelola akun: tambah/edit/reset password/nonaktifkan (khusus superadmin)
 bersihkan-data.html            hapus permanen laporan/checklist lama yang approved/rejected, sekalian foto di storage (khusus superadmin)
+audit-log.html                 jejak aktivitas: login/logout, kelola user, approve/reject, hapus data (khusus superadmin)
 
 css/
   style.css                    tampilan semua halaman
@@ -46,6 +169,9 @@ js/
   login.js                     logic halaman login (cek akun ke database)
   kelola-user.js                logic halaman Kelola User (khusus superadmin)
   bersihkan-data.js            logic halaman Bersihkan Data (khusus superadmin)
+  audit.js                      modul kecil buat mencatat aktivitas penting ke tabel audit_log
+                                (dipakai bareng oleh auth.js/kelola-user.js/draft.js/bersihkan-data.js)
+  audit-log.js                  logic halaman Audit Log: filter, tabel, export Excel (khusus superadmin)
   image-compress.js            kompres foto (resize + re-encode JPEG) di browser sebelum upload,
                                 dipakai bareng oleh app.js/checklist.js/production-checklist.js
   app.js                       logic form Laporan Mesin + koneksi Supabase
@@ -63,6 +189,12 @@ js/
   draft.js                     logic halaman Draft: tab status, approve/reject
   notify.js                    kirim notifikasi ke SPV tiap ada laporan/checklist baru
   dashboard.js                 logic dashboard ringkasan
+  trend.js                     logic halaman Trend & Analytics (agregasi laporan jadi chart,
+                                pakai Chart.js via dynamic import dari esm.sh)
+  qrcode-page.js                logic halaman QR Mesin (generate QR per equipment pakai
+                                library "qrcode" via esm.sh, filter, cetak)
+  riwayat-mesin.js              logic halaman Riwayat Mesin (pilih equipment, tampilkan
+                                statistik & timeline semua laporannya)
   sidebar.js                   buka/tutup sidebar (semua halaman)
 
 assets/
@@ -79,6 +211,7 @@ sql/                           jalankan urut sesuai nomor di bagian setup di baw
   add_pm_checklist_foto.sql
   add_production_checklist.sql
   add_delete_policy.sql
+  add_audit_log.sql
 
 data/
   master_data.json             data mentah hasil olahan Excel (referensi/backup)
@@ -134,6 +267,10 @@ dari file sebelumnya:
     `pm_checklist_foto`, `production_checklist_submission`, dan
     `production_checklist_foto`. Dibutuhkan supaya halaman **Bersihkan
     Data** (superadmin) bisa menghapus permanen data lama.
+11. `sql/add_audit_log.sql` — tabel `audit_log`, tempat tercatatnya
+    aktivitas penting (login/logout, kelola user, approve/reject, hapus
+    data). Dibutuhkan supaya halaman **Audit Log** (superadmin) bisa
+    menampilkan datanya.
 
 ### 3. Ambil API key
 **Project Settings → API**. Salin:
@@ -198,6 +335,7 @@ untuk layar kecil.
 | Draft — review & approve/reject (`draft.html`) | – | ✅ | ✅ |
 | Kelola User (`kelola-user.html`) | – | – | ✅ |
 | Bersihkan Data (`bersihkan-data.html`) | – | – | ✅ |
+| Audit Log (`audit-log.html`) | – | – | ✅ |
 
 Setelah login, sidebar otomatis cuma menampilkan menu yang jadi hak
 peran itu (diatur `js/auth.js`, lewat atribut `data-allow` di tiap
@@ -255,6 +393,15 @@ lewat `login.html`.
   baru row-nya di database (row di tabel foto ikut terhapus otomatis
   lewat `on delete cascade`) — supaya tidak ada file foto yang jadi
   sampah tanpa row database yang menunjuknya.
+- **Audit Log** (superadmin): tiap kali ada aksi penting — login/logout,
+  tambah/ubah/reset password/aktifkan/nonaktifkan user, approve/reject
+  draft, atau hapus data permanen — `js/audit.js` mengirim 1 baris ke
+  tabel `audit_log` berisi siapa (username, nama, role), aksi apa, data
+  apa yang kena, dan kapan. Halaman Audit Log menampilkan ini sebagai
+  tabel yang bisa difilter (jenis aksi, jenis data, aktor, rentang
+  tanggal) dan diexport ke Excel. Pencatatan ini dibuat "best effort" —
+  kalau gagal tercatat (mis. koneksi putus), aksi utamanya tetap jalan,
+  cuma errornya muncul di console browser, bukan mengganggu pengguna.
 
 ## Catatan keamanan
 
@@ -276,6 +423,12 @@ di sisi tampilan (role gate di `js/auth.js`), bukan di database. Artinya:
   recycle bin/undo) — pastikan hanya superadmin yang dipercaya yang
   pegang akunnya, dan sebaiknya backup/export dulu data yang mau
   dihapus kalau masih ragu.
+- **Audit Log** tidak bisa diubah/dihapus lewat aplikasi ini (RLS-nya
+  cuma SELECT + INSERT), tapi karena app masih pakai anon key tanpa
+  Supabase Auth (lihat poin pertama), orang yang pegang Project URL +
+  anon key tetap bisa insert baris palsu langsung lewat API di luar
+  aplikasi ini. Jadi audit log ini berguna buat melacak pemakaian
+  normal lewat app, tapi bukan bukti forensik yang tamper-proof.
 
 Kalau nanti butuh proteksi yang lebih kuat (akun beneran lewat Supabase
 Auth + RLS berbasis user, hashing password yang lebih kuat di server),

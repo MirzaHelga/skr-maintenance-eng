@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#14283B" />
+<link rel="apple-touch-icon" href="assets/icon-192.png" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body data-page="checklist" data-allow="operator,spv,superadmin">
@@ -25,12 +28,16 @@
     </div>
     <div class="sidebar-nav">
       <a href="dashboard.html" class="sidebar-link" data-role="spv,superadmin">Dashboard</a>
+      <a href="trend.html" class="sidebar-link" data-role="spv,superadmin">Trend</a>
       <a href="laporan.html" class="sidebar-link" data-role="all">Report</a>
       <a href="pm.html" class="sidebar-link" data-role="all">Utility</a>
       <a href="production.html" class="sidebar-link" data-role="all">Production</a>
+      <a href="qrcode.html" class="sidebar-link" data-role="spv,superadmin">QR Mesin</a>
+      <a href="riwayat-mesin.html" class="sidebar-link" data-role="spv,superadmin">Riwayat Mesin</a>
       <a href="draft.html" class="sidebar-link" data-role="spv,superadmin">Draft</a>
       <a href="kelola-user.html" class="sidebar-link" data-role="superadmin">Kelola User</a>
       <a href="bersihkan-data.html" class="sidebar-link" data-role="superadmin">Bersihkan Data</a>
+      <a href="audit-log.html" class="sidebar-link" data-role="superadmin">Audit Log</a>
     </div>
   </aside>
 
@@ -150,5 +157,6 @@
 <script src="js/sidebar.js"></script>
 <script type="module" src="js/auth.js"></script>
 <script type="module" src="js/checklist.js"></script>
+<script src="js/pwa.js"></script>
 </body>
 </html>

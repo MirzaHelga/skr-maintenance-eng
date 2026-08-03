@@ -94,7 +94,35 @@ async function loadMasterData() {
   selectArea.disabled = false;
 
   fillSelect(selectPic, karyawanRes.data, "Pilih PIC");
+
+  applyEquipmentFromQr();
 }
+
+// ---------- PRA-ISI DARI QR CODE ----------
+// Kalau halaman dibuka lewat scan QR mesin (link berisi ?equipment=<id>),
+// otomatis pilihkan area -> mesin -> equipment yang sesuai supaya
+// operator tidak perlu cari manual dari 3 dropdown.
+function applyEquipmentFromQr() {
+  const params = new URLSearchParams(window.location.search);
+  const equipmentId = params.get("equipment");
+  if (!equipmentId) return;
+
+  const equipment = equipmentList.find((e) => e.id === equipmentId);
+  if (!equipment) {
+    showFormError("Equipment dari QR ini tidak ditemukan (mungkin sudah dihapus/diganti). Silakan pilih manual.");
+    return;
+  }
+  const mesin = mesinList.find((m) => m.id === equipment.mesin_id);
+  if (!mesin) return;
+
+  selectArea.value = mesin.area_id;
+  selectArea.dispatchEvent(new Event("change"));
+
+  selectMesin.value = mesin.id;
+  selectMesin.dispatchEvent(new Event("change"));
+
+  selectEquipment.value = equipment.id;
+
 
 function fillSelect(selectEl, items, placeholder) {
   selectEl.innerHTML = "";
