@@ -24,6 +24,7 @@ export const AUDIT_ACTION_LABEL = {
   approve: "Approve",
   reject: "Reject",
   hapus_data: "Hapus data permanen",
+  export_data: "Export data",
 };
 
 export const AUDIT_ENTITY_LABEL = {

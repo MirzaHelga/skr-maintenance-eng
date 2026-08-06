@@ -113,6 +113,32 @@ sedangkan `esm.sh` sudah pasti kepakai di app ini buat
 Chart.js). Tidak perlu instalasi apa pun. Butuh policy baca tabel `laporan` yang sama
 dengan Dashboard/Rekap (`sql/add_rekap_read_policy.sql`).
 
+## Ganti Bahasa ID/EN
+
+Ada tombol **ID | EN** di pojok kanan topbar tiap halaman (termasuk halaman
+login) buat ganti tampilan antara Bahasa Indonesia dan Inggris.
+
+- Cara kerjanya: `js/i18n.js` punya satu kamus teks Indonesia asli → Inggris
+  (`DICT`), lalu jalan-jalan (walk) ke semua teks & atribut
+  (`placeholder`/`title`/`aria-label`) di halaman dan menggantinya kalau
+  cocok persis dengan salah satu entri kamus. Teks Indonesia aslinya
+  disimpan di memori (bukan ditimpa permanen), jadi tinggal toggle balik
+  buat kembali ke Bahasa Indonesia tanpa kamus kebalikan terpisah.
+- Konten yang di-generate belakangan oleh JS (tabel rekap, badge status,
+  pesan error, dsb) ikut otomatis diterjemahkan lewat `MutationObserver` —
+  jadi **tidak perlu** ubah `app.js`/`rekap.js`/dll satu-satu.
+- Pilihan bahasa disimpan di `localStorage` (per browser/device, bukan per
+  akun), jadi tetap kepilih walau reload atau pindah halaman.
+- **Cakupan**: navigasi, tombol, label form, status, badge, pesan
+  error/sukses, dan hampir semua teks UI di semua halaman. Isi "Uraian
+  pekerjaan" pada Checklist PM & Production (ratusan baris di
+  `js/checklist-data.js`/`js/production-data.js`, daftar tugas maintenance
+  teknis yang sumbernya sudah campur ID/EN) **sengaja tidak** ikut
+  diterjemahkan — kalau suatu saat mau ditambah, tinggal tambah pasangan
+  `"teks Indonesia": "English text"` baru di `DICT` pada `js/i18n.js`, tidak
+  perlu ubah kode lain. Export ke Excel juga tetap berisi teks Indonesia
+  apa adanya (dibuat terpisah dari tampilan halaman).
+
 ## PWA (bisa di-install ke HP)
 
 App ini sudah bisa di-"Add to Home Screen" / install seperti aplikasi
@@ -164,6 +190,8 @@ css/
 
 js/
   config.js                    isi URL & anon key project Supabase kamu di sini
+  i18n.js                      ganti bahasa ID/EN (kamus + auto-translate DOM,
+                                dipakai di semua halaman lewat tombol topbar)
   auth.js                      sesi login, hash password, penjaga akses halaman,
                                 sidebar/topbar sesuai peran, lonceng notifikasi
   login.js                     logic halaman login (cek akun ke database)
