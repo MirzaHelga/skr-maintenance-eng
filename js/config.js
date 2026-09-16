@@ -3,8 +3,8 @@
 // Ambil dari: Supabase Dashboard > Project Settings > API
 // ============================================================
 
-export const SUPABASE_URL = "https://adlqxjysmxesoxriwshm.supabase.co";
-export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkbHF4anlzbXhlc294cml3c2htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNTM3ODMsImV4cCI6MjA5OTYyOTc4M30.80v3Ple4WctAi2_UFkzJ0aAJTEe8y7irVP-ldACI5nw";
+export const SUPABASE_URL = "https://yprepomvjqflbxacwunm.supabase.co";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcmVwb212anFmbGJ4YWN3dW5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDQ2NjAsImV4cCI6MjEwMzcyMDY2MH0.8oRwX44t5wpqmSXqgANA51VuGkNYmOZc6QQjwuQiQmw";
 
 // ============================================================
 // AKUN LOGIN
